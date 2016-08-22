@@ -32,7 +32,7 @@ if exist(env.cstfilename,'file')
     simvar = loadst.simvar;
 end
 if ~exist('simvar','var')
-    simvar = struct([]);
+    simvar = struct();
 else
     simvar(end+1).nodes = [];%cst(1);
 end
@@ -76,7 +76,7 @@ end
 simvar(end).TEST = TEST;
 simvar(end).PARA = 1;
 simvar(end).P = 4;
-simvar(end).NODES_VECT = 100;
+simvar(end).NODES_VECT = 1000;
 simvar(end).MAX_EPOCHS_VECT = [1];
 simvar(end).ARCH_VECT = [8];
 simvar(end).MAX_NUM_TRIALS = 1;
@@ -163,14 +163,14 @@ for architectures = simvar(end).ARCH_VECT
                 else
                     data = varargin{1};
                     data = data(featuress);                    
-                    simvar(end).datainputvectorsize = size(data.input,2);
+                    simvar(end).datainputvectorsize = size(data.inputs,2);
                     params.skelldef = struct('length', simvar(end).datainputvectorsize, 'notskeleton', true, 'awk', struct('pos', [],'vel',[]), 'pos', simvar(end).datainputvectorsize, 'vel', []);
-                    data.train.data = data.input'; % not empty so that the algorithm doesnt complain
+                    data.train.data = data.inputs'; % not empty so that the algorithm doesnt complain
                     data.train.y = data.labelsM;
-                    data.train.ends = ones(1,size(data.input,1));
-                    data.val.data = data.input';
+                    data.train.ends = ones(1,size(data.inputs,1));
+                    data.val.data = data.inputs';
                     data.val.y = data.labelsM;
-                    data.val.ends = ones(1,size(data.input,1));                    
+                    data.val.ends = ones(1,size(data.inputs,1));                    
                 end
                 
                 %% Classifier structure definitions
