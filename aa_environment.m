@@ -8,13 +8,21 @@ elseif isunix
     env.wheretosavestuff = '/media/fbklein/Elements/fall_detection_datasets/var';
     env.homepath = '/home/fbklein/Documents/classifier/';
     %disp('reached isunix')
+elseif ispc
+    env.wheretosavestuff = 'E:';
+    env.homepath = 'C:\Users\Frederico\Documents\GitHub\classifier';
 else
-    %addpath(genpath(homepath))
-    
     disp('oh-oh')
 end
+%addpath(genpath(homepath))
 %open dialog box?
 %have to see how to do it
-logpath = strcat(env.homepath,'tst/var/log.txt');
 [env.SLASH, env.pathtodata] = OS_VARS();
+
+logpath = strcat(env.homepath, env.SLASH ,'var',env.SLASH,'log.txt');
+if ~exist(logpath,'file')
+    fid = fopen( logpath, 'wt' );
+    fprintf( fid, 'New logfile created.');
+    fclose(fid);
+end
 end

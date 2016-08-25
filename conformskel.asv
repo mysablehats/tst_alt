@@ -69,7 +69,7 @@ else
     skelldef.bodyparts = genbodyparts(skelldef.length);
     
     %%%errorkarling
-    if ~singleskelset&&(size(data_val,1)~=skelldef.length)&&size(data_val,2)~=0
+    if ~singleskelset&&(size(data_val,1)~=skelldef.length)&&size(data_val,1)
         error('data_train and data_val must have the same length!!!')
     end
 
@@ -202,11 +202,7 @@ else
         realkilldim = whattokill(killdim,:);
         conform_train = data_train(setdiff(1:skelldef.length,realkilldim),:); %sorry for the in-liners..
         if ~singleskelset
-            if size(data_val,2)>0
-                conform_val = data_val(setdiff(1:skelldef.length,realkilldim),:);
-            else
-                conform_val = [];
-            end
+            conform_val = data_val(setdiff(1:skelldef.length,realkilldim),:);
         end
         skelldef.elementorder = skelldef.elementorder(setdiff(1:skelldef.length,realkilldim));
     else

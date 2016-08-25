@@ -77,7 +77,7 @@ end
 simvar(end).TEST = TEST; %change this in the beginning of the program
 simvar(end).PARA = 0;
 simvar(end).P = 1;
-simvar(end).NODES_VECT = 1000;
+simvar(end).NODES_VECT = 10;
 simvar(end).MAX_EPOCHS_VECT = [1];
 simvar(end).ARCH_VECT = [8];
 simvar(end).MAX_NUM_TRIALS = 1;
@@ -530,9 +530,6 @@ for j = whatIlabel
         savestructure.gas(j).fig.val =   {savestructure.val.gas(j).y,     savestructure.val.gas(j).class,  strcat(savestructure.gas(j).name,savestructure.gas(j).method,'V')};
         %savestructure.figset = [savestructure.figset, savestructure.gas(j).fig.val, savestructure.gas(j).fig.train];
         %%%
-    else
-        metrics(j).confusions.val = [];
-        savestructure.gas(j).fig.val = [];
     end
     metrics(j).conffig = savestructure.gas(j).fig;
 end
@@ -549,7 +546,7 @@ if ~isempty(metitems)
     plotconf(metrics(metitems))
 end
 %plotconf(savestructure.figset{:})
-if isfield(savestructure.gas(end).fig, 'val')&&~isempty(savestructure.gas(end).fig.val)
+if isfield(savestructure.gas(end).fig, 'val')
     figure
     plotconfusion(savestructure.gas(end).fig.val{:})
 end
