@@ -9,8 +9,8 @@ elseif isunix
     env.homepath = '/home/fbklein/Documents/classifier/';
     %disp('reached isunix')
 elseif ispc
-    env.wheretosavestuff = 'E:';
-    env.homepath = 'C:\Users\Frederico\Documents\GitHub\classifier';
+    env.wheretosavestuff = 'E:\';
+    env.homepath = 'C:\\Users\\Frederico\\Documents\\GitHub\\classifier';
 else
     disp('oh-oh')
 end
@@ -18,8 +18,11 @@ end
 %open dialog box?
 %have to see how to do it
 [env.SLASH, env.pathtodata] = OS_VARS();
-
-logpath = strcat(env.homepath, env.SLASH ,'var',env.SLASH,'log.txt');
+if ispc
+    logpath = strcat(env.homepath, env.SLASH , env.SLASH ,'var',env.SLASH ,env.SLASH,'log.txt');
+else
+    logpath = strcat(env.homepath, env.SLASH ,'var',env.SLASH,'log.txt');
+end
 if ~exist(logpath,'file')
     fid = fopen( logpath, 'wt' );
     fprintf( fid, 'New logfile created.');

@@ -4,54 +4,66 @@ dbgmsg('Applies preconditioning functions to both training and validation datase
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 test = false;
 skelldef = struct();
-if isempty(varargin)||strcmp(varargin{1},'test')
+if isempty(varargin{1})
+    conformstruc = [];
+else
+    conformstruc = varargin{1};
+end
+if isempty(varargin)||strcmp(varargin{1},'test')||(isstruct(varargin{1})&&isfield(varargin{1},'data')&&isempty(varargin{1}.data))||isempty(varargin{1})
+    skelldef = [];
     return
 else        
-    if isstruct(varargin{1})
-        outputisstruc = true;
-        conformstruc = varargin{1};
-        data_train = conformstruc.train.data;
-        data_val = conformstruc.val.data;
-        data_ytrain = conformstruc.train.y ;
-        data_yval = conformstruc.val.y;
-        
-        if isfield(conformstruc,'awk')
-            awk = conformstruc.awk;
-        else
-            awk = generate_awk(data_train);
-            dbgmsg('awk not defined. considering all joints as having equal importance.',1)
-        end
-        lindx = 2;
-        singleskelset = false;
-    else
-        outputisstruc = false;
-        data_train = varargin{1};
-        if nargin>2
-            data_val = varargin{2};            
-            if isnumeric(varargin{3})
-                awk = varargin{3};
-                lindx = 4;
-            elseif ischar(varargin{3})
-                awk = generate_awk(data_train);
-                lindx = 3;
-                dbgmsg('awk not defined. considering all joints as having equal importance.',1)
-            else
-                error('Strange input. I don''t know what to do with it. ')
-            end
-            singleskelset = false;
-        else
-            awk = generate_awk(data_train);
-            lindx = 2;
-            singleskelset = true;
-        end 
-        %awk = generate_awk;
-        data_ytrain = []; %% I need to change this if I plan on increasing the size of the data, such as with the mirror func
-        data_yval = []; %%same        
-    end
+    lindx = 2;
+    awk = generate_awk(conformstruc.data);
+%     if isstruct(varargin{1})
+%         if isfield(varargin{1},'train')
+%             outputisstruc = true;
+%             conformstruc = varargin{1};
+%             data_train = conformstruc.train.data;
+%             data_val = conformstruc.val.data;
+%             data_ytrain = conformstruc.train.y ;
+%             data_yval = conformstruc.val.y;
+%             
+%             if isfield(conformstruc,'awk')
+%                 awk = conformstruc.awk;
+%             else
+%                 awk = generate_awk(data_train);
+%                 dbgmsg('awk not defined. considering all joints as having equal importance.',1)
+%             end
+%             lindx = 2;
+%             singleskelset = false;
+%         else
+%  
+%         end
+%     else
+%         outputisstruc = false;
+%         data_train = varargin{1};
+%         if nargin>2
+%             data_val = varargin{2};            
+%             if isnumeric(varargin{3})
+%                 awk = varargin{3};
+%                 lindx = 4;
+%             elseif ischar(varargin{3})
+%                 awk = generate_awk(data_train);
+%                 lindx = 3;
+%                 dbgmsg('awk not defined. considering all joints as having equal importance.',1)
+%             else
+%                 error('Strange input. I don''t know what to do with it. ')
+%             end
+%             singleskelset = false;
+%         else
+%             awk = generate_awk(data_train);
+%             lindx = 2;
+%             singleskelset = true;
+%         end 
+%         %awk = generate_awk;
+%         data_ytrain = []; %% I need to change this if I plan on increasing the size of the data, such as with the mirror func
+%         data_yval = []; %%same        
+%    end
     %%% initiallize variables to make skelldef
     killdim = [];
     skelldef.realkilldim = [];
-    skelldef.length = size(data_train,1);
+    skelldef.length = size(conformstruc.data,1);
     skelldef.elementorder = 1:skelldef.length;
     
     switch skelldef.length
@@ -68,10 +80,10 @@ else
     %%%
     skelldef.bodyparts = genbodyparts(skelldef.length);
     
-    %%%errorkarling
-    if ~singleskelset&&(size(data_val,1)~=skelldef.length)&&size(data_val,2)~=0
-        error('data_train and data_val must have the same length!!!')
-    end
+%     %%%errorkarling
+%     if ~singleskelset&&(size(data_val,1)~=skelldef.length)&&size(data_val,2)~=0
+%         error('data_train and data_val must have the same length!!!')
+%     end
 
     % creates the function handle cell array
     conformations = {};
@@ -141,26 +153,18 @@ else
             func = conformations{i};
             dbgmsg('Applying normalization: ', varargin{i+lindx-1},true);
             if isequal(func, @mirrorx)||isequal(func,@mirrory)||isequal(func, @mirrorz)
-                data_trainmirror = data_train;
-                data_ytrainmirror = data_ytrain;
-                if ~singleskelset
-                    data_valmirror = data_val;
-                    data_yvalmirror = data_yval;
-                end
+                data_mirror = conformstruc.data;
+                data_ymirror = conformstruc.y;
             else
-                data_trainmirror = [];                
-                data_ytrainmirror = [];
-                if ~singleskelset
-                    data_valmirror = [];
-                    data_yvalmirror = [];
-                end
-            end
+                data_mirror = [];                
+                data_ymirror = [];
+           end
             
             if isequal(func,@normalize)
                 %%% must go through whole dataset!
                 %%% if there is ever another function that requires this,
                 %%% then I should probably use a switch - if that works...
-                allskels = makefatskel(data_train);
+                allskels = makefatskel(conformstruc.data);
                 %%% calculating the magic constants for our data
                 if skelldef.novel
                     vectdata_pos = reshape(allskels(1:skelldef.length/3,:,:),1,[]);
@@ -180,49 +184,26 @@ else
                 %                     data_trainmirror = data_train;
                 %                     data_valmirror = data_val;
             end
-            for j = 1:size(data_train,2)
-                [tdskel,skelldef.hh] = makefatskel(data_train(:,j));
-                data_train(:,j) = makethinskel(func(tdskel, skelldef));
+            for j = 1:size(conformstruc.data,2)
+                [tdskel,skelldef.hh] = makefatskel(conformstruc.data(:,j));
+                conformstruc.data(:,j) = makethinskel(func(tdskel, skelldef));
             end
-            data_train = [data_train data_trainmirror];
-            data_ytrain = [data_ytrain data_ytrainmirror];
-            if ~singleskelset
-                for j = 1:size(data_val,2)
-                    [tdskel,skelldef.hh] = makefatskel(data_val(:,j));
-                    data_val(:,j) = makethinskel(func(tdskel, skelldef));
-                end
-                data_val = [data_val data_valmirror];
-                data_yval = [data_yval data_yvalmirror];
-            end
+            conformstruc.data = [conformstruc.data data_mirror];
+            conformstruc.y = [conformstruc.y data_ymirror];           
         end
     end
     % squeeze them accordingly?
     if ~test
         whattokill = reshape(1:skelldef.length,skelldef.length/3,3);
         realkilldim = whattokill(killdim,:);
-        conform_train = data_train(setdiff(1:skelldef.length,realkilldim),:); %sorry for the in-liners..
-        if ~singleskelset
-            if size(data_val,2)>0
-                conform_val = data_val(setdiff(1:skelldef.length,realkilldim),:);
-            else
-                conform_val = [];
-            end
-        end
+        conform_train = conformstruc.data(setdiff(1:skelldef.length,realkilldim),:); %sorry for the in-liners..       
         skelldef.elementorder = skelldef.elementorder(setdiff(1:skelldef.length,realkilldim));
     else
-        conform_train = data_train;
-        if ~singleskelset
-            conform_val = data_val;
-        end
+        conform_train = conformstruc.data; 
     end
-    if outputisstruc
-        conformstruc.train.data = conform_train;
-        conformstruc.val.data = conform_val;
-        conformstruc.train.y = data_ytrain;
-        conformstruc.val.y = data_yval;
-    else
-        conformstruc = conform_train;
-    end
+
+        conformstruc.data = conform_train;
+        conformstruc.y = conformstruc.y;
 end
 skelldef.realkilldim = realkilldim;
 [skelldef.pos, skelldef.vel] = generateidx(skelldef.length, skelldef);
@@ -460,6 +441,23 @@ switch lenlen
         bodyparts.hip_center = [];    
     otherwise
         dbgmsg('No idea from this size from what type of skeleton this is. I will assume it is a randomstick.')
+        bodyparts.HEAD = [];
+        bodyparts.NECK = [];
+        bodyparts.TORSO = [];
+        bodyparts.LEFT_SHOULDER = [];
+        bodyparts.LEFT_ELBOW = [];
+        bodyparts.RIGHT_SHOULDER = [];
+        bodyparts.RIGHT_ELBOW = [];
+        bodyparts.LEFT_HIP = [];
+        bodyparts.LEFT_KNEE = [];
+        bodyparts.RIGHT_HIP = [];
+        bodyparts.RIGHT_KNEE = [];
+        bodyparts.LEFT_HAND = [];
+        bodyparts.RIGHT_HAND = [];
+        bodyparts.LEFT_FOOT = [];
+        bodyparts.RIGHT_FOOT = [];
+        %%%
+        bodyparts.hip_center = [];    
         return
 end
 end
