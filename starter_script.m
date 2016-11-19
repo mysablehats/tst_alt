@@ -1,13 +1,14 @@
 function simvar = starter_script(varargin)
 %%%% STARTING MESSAGES PART FOR THIS RUN
+global VERBOSE LOGIT TEST
+VERBOSE = true;
+LOGIT = false;
+TEST = false; % set to false to actually run it
 dbgmsg('=======================================================================================================================================================================================================================================')
 dbgmsg('Running starter script')
 dbgmsg('=======================================================================================================================================================================================================================================')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-global VERBOSE LOGIT TEST
-VERBOSE = true;
-LOGIT = true;
-TEST = false; % set to false to actually run it
+
 
 % Each trial is trained on freshly partitioned/ generated data, so that we
 % have an unbiased understanding of how the chained-gas is classifying.
@@ -41,7 +42,7 @@ end
 if isempty(varargin)
     simvar(end).featuresall = 1;
     simvar(end).realtimeclassifier = false;
-    simvar(end).generatenewdataset = true;
+    simvar(end).generatenewdataset = true; %true;
     simvar(end).datasettype = 'CAD60'; % datasettypes are 'CAD60', 'tstv2' and 'stickman'
     simvar(end).sampling_type = 'type2';
     simvar(end).activity_type = 'act_type'; %'act_type' or 'act'
@@ -79,15 +80,16 @@ simvar(end).PARA = 0;
 simvar(end).P = 1;
 simvar(end).NODES_VECT = 1000;
 simvar(end).MAX_EPOCHS_VECT = [1];
-simvar(end).ARCH_VECT = [8];
+simvar(end).ARCH_VECT = [1];
 simvar(end).MAX_NUM_TRIALS = 1;
 simvar(end).MAX_RUNNING_TIME = 1;%3600*10; %%% in seconds, will stop after this
 
 % set parameters for gas:
 
+params.layertype = '';
 params.MAX_EPOCHS = [];
 params.removepoints = true;
-params.PLOTIT = false;
+params.PLOTIT = true;
 params.RANDOMSTART = true; % if true it overrides the .startingpoint variable
 params.RANDOMSET = true; % if true, each sample (either alone or sliding window concatenated sample) will be presented to the gas at random
 params.savegas.resume = false; % do not set to true. not working
@@ -137,7 +139,13 @@ for architectures = simvar(end).ARCH_VECT
                 params.MAX_EPOCHS = simvar(end).MAX_EPOCHS;
                 params.nodes = simvar(end).NODES; %maximum number of nodes/neurons in the gas
                 
+                 %% Classifier structure definitions
+                
+                simvar(end).allconn = allconnset(simvar(end).arch, params);
+                
+                
                 %% Loading data
+                data =  makess(length(baq(simvar(end).allconn))); % this breaks exectution core changes... 
                 if isempty(varargin)
                     datasetmissing = false;
                     if ~exist(simvar(end).trialdatafile, 'file')&&~simvar(end).generatenewdataset
@@ -176,10 +184,11 @@ for architectures = simvar(end).ARCH_VECT
                     data.val.y = data.labelsM;
                     data.val.ends = ones(1,size(data.inputs,1));                    
                 end
-                
                 %% Classifier structure definitions
                 
                 simvar(end).allconn = allconnset(simvar(end).arch, params);
+            
+  %%%%%does this look like good programming?           
                 
                 
                 %% Setting up different parameters for each of parallel tria
@@ -202,7 +211,7 @@ for architectures = simvar(end).ARCH_VECT
                         end
                         if simvar(end).PARA
                             spmd(simvar(end).P)
-                                a(labindex).a = executioncore_in_starterscript(simvar(end).paramsZ(labindex),simvar(end).allconn, data);
+                                a(labindex).a = executioncore_in_starterscript(simvar(end),labindex, data,env);
                             end
                             %b = cat(2,b,a.a);
                             for i=1:length(a)
@@ -214,7 +223,7 @@ for architectures = simvar(end).ARCH_VECT
                             a(1:simvar(end).P) = struct();
                         else
                             for i = 1:simvar(end).P
-                                a(i).a = executioncore_in_starterscript(simvar(end).paramsZ(i),simvar(end).allconn, data);
+                                a(i).a = executioncore_in_starterscript(simvar(end),i, data,env);
                             end
                             b = cat(2,b,a.a);
                             clear a
@@ -222,7 +231,7 @@ for architectures = simvar(end).ARCH_VECT
                         end
                     end
                 else
-                    b = executioncore_in_starterscript(simvar(end).paramsZ(1),simvar(end).allconn, data);
+                    b = executioncore_in_starterscript(simvar(end),1, data,env);
                 end
                 
                 simvar(end).metrics = gen_cst(b); %%% it takes the important stuff from b;;; hopefully
@@ -250,6 +259,7 @@ for architectures = simvar(end).ARCH_VECT
     end
 end
 simvar(end) = [];
+disp('hello')
 end
 function allconn = allconnset(n, params)
 allconn_set = {...
@@ -317,7 +327,10 @@ allconn_set = {...
     };
 allconn = allconn_set{n};
 end
-function a = executioncore_in_starterscript(paramsZ,allconn, data)
+function a = executioncore_in_starterscript(simvar, i, data,env)
+paramsZ = simvar.paramsZ(i);
+allconn = simvar.allconn;
+
 global TEST
 n = randperm(size(data.train.data,2)-3,2); % -(q-1) necessary because concatenation reduces the data size!
 paramsZ.startingpoint = [n(1) n(2)];
@@ -339,7 +352,16 @@ if TEST
     
 else
     [outstruct, a.mt, ~] = starter_sc(data, pallconn);
-    disp('hello')
+    %%disp('hello')
+    %%chunk = makechunk(data);
+    %%load('chunk.mat');
+    %    save('realclassifier.mat', 'outstruct', 'pallconn', 'simvar')
+
+    save('realclassifier', {'outstruct', 'pallconn', 'simvar'},env)
+    [~, something_to_classify] = realvideo(outstruct, baq(pallconn), simvar,0);   
+    % realvideo(outstruct, baq(pallconn), simvar);
+
+    %%online_classifier(chunkchunk, outstruct, baq(pallconn), simvar);
 end
 end
 
