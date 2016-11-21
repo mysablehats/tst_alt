@@ -9,7 +9,9 @@ elseif isunix
     env.homepath = '/home/fbklein/Documents/classifier/';
     %disp('reached isunix')
 elseif ispc
-    env.wheretosavestuff = 'd:\';
+    %env.wheretosavestuff = 'd:\'; %%% should check if there is permission for saving!!!
+    %env.wheretosavestuff = 'e:\'; %%% should check if there is permission for saving!!!
+    env.wheretosavestuff = 'g:\savesave\'; %%% should check if there is permission for saving!!!
     env.homepath = 'C:\\Users\\Frederico\\Documents\\GitHub\\classifier';
 else
     disp('oh-oh')

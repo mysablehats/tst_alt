@@ -42,7 +42,11 @@ for j = 1:length(arq_connect)
     [ss.gas(j), ss.train] = gas_method(ss, ss.train,'train', arq_connect(j),j, size(ss.train.data,1)); % I had to separate it to debug it.
     metrics(j).outparams = ss.gas(j).outparams;
     if size(ss.val.data,1) > 0
+<<<<<<< HEAD
         [ss, ss.val ]= gas_method(ss, ss.val,'val', arq_connect(j),j, size(ss.train.data,1));
+=======
+        [~, ss.val ]= gas_method(ss, ss.val,'val', arq_connect(j),j, size(ss.train.data,1));
+>>>>>>> refs/remotes/origin/alice_variant
     end
 end
 

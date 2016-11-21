@@ -199,7 +199,6 @@ else
                     template = maketemplate(conformstruc.data, skelldef); % maybe I should separate velocities and positions
                     skelldef.template = template;
                     skelldef.templaten = makethinskel(normalize(makefatskel(template),skelldef));
-
                 else
                     %%%
                     %normalization will be very strange in this case and will not be a real normalization

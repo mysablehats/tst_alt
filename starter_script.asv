@@ -31,10 +31,11 @@ env.cstfilename=strcat(env.wheretosavestuff,env.SLASH,'cst.mat');
 if exist(env.cstfilename,'file')
     loadst = load(env.cstfilename,'simvar');
     try
-        simvar = loadst.simvar;
+    simvar = loadst.simvar;
     catch
-        simvar = struct();
+    simvar = struct();    
     end
+    
 end
 if ~exist('simvar','var')
     simvar = struct();
@@ -46,7 +47,7 @@ end
 if isempty(varargin)
     simvar(end).featuresall = 1;
     simvar(end).realtimeclassifier = false;
-    simvar(end).generatenewdataset = true; %true;
+    simvar(end).generatenewdataset = false;
     simvar(end).datasettype = 'CAD60'; % datasettypes are 'CAD60', 'tstv2' and 'stickman'
     simvar(end).sampling_type = 'type1';
     simvar(end).activity_type = 'act_type'; %'act_type' or 'act'
@@ -83,7 +84,7 @@ simvar(end).TEST = TEST; %change this in the beginning of the program
 simvar(end).PARA = 0;
 simvar(end).P = 1;
 simvar(end).NODES_VECT = 1000;
-simvar(end).MAX_EPOCHS_VECT = [1];
+simvar(end).MAX_EPOCHS_VECT = [20];
 simvar(end).ARCH_VECT = [1];
 simvar(end).MAX_NUM_TRIALS = 1;
 simvar(end).MAX_RUNNING_TIME = 1;%3600*10; %%% in seconds, will stop after this
@@ -215,7 +216,7 @@ for architectures = simvar(end).ARCH_VECT
                         end
                         if simvar(end).PARA
                             spmd(simvar(end).P)
-                                a(labindex).a = executioncore_in_starterscript(simvar(end),labindex, data,env);
+                                a(labindex).a = executioncore_in_starterscript(simvar(end),labindex, data);
                             end
                             %b = cat(2,b,a.a);
                             for i=1:length(a)
@@ -227,7 +228,7 @@ for architectures = simvar(end).ARCH_VECT
                             a(1:simvar(end).P) = struct();
                         else
                             for i = 1:simvar(end).P
-                                a(i).a = executioncore_in_starterscript(simvar(end),i, data,env);
+                                a(i).a = executioncore_in_starterscript(simvar(end),i, data);
                             end
                             b = cat(2,b,a.a);
                             clear a
@@ -235,7 +236,7 @@ for architectures = simvar(end).ARCH_VECT
                         end
                     end
                 else
-                    b = executioncore_in_starterscript(simvar(end),1, data,env);
+                    b = executioncore_in_starterscript(simvar(end),1, data);
                 end
                 
                 simvar(end).metrics = gen_cst(b); %%% it takes the important stuff from b;;; hopefully
@@ -331,7 +332,7 @@ allconn_set = {...
     };
 allconn = allconn_set{n};
 end
-function a = executioncore_in_starterscript(simvar, i, data,env)
+function a = executioncore_in_starterscript(simvar, i, data)
 paramsZ = simvar.paramsZ(i);
 allconn = simvar.allconn;
 
@@ -359,10 +360,8 @@ else
     %%disp('hello')
     %%chunk = makechunk(data);
     %%load('chunk.mat');
-    %    save('realclassifier.mat', 'outstruct', 'pallconn', 'simvar')
-
-    save(savefilesave2('realclassifier', env),'outstruct', 'pallconn', 'simvar')
-    [~, something_to_classify] = realvideo(outstruct, baq(pallconn), simvar,0);   
+    save('realclassifier.mat', 'outstruct', 'pallconn', 'simvar')
+ %   [~, something_to_classify] = realvideo(outstruct, baq(pallconn), simvar,0);   
     % realvideo(outstruct, baq(pallconn), simvar);
 
     %%online_classifier(chunkchunk, outstruct, baq(pallconn), simvar);
