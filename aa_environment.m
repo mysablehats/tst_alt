@@ -9,7 +9,9 @@ elseif isunix
     env.homepath = '/home/fbklein/Documents/classifier/';
     %disp('reached isunix')
 elseif ispc
-    env.wheretosavestuff = 'E:\';
+    %env.wheretosavestuff = 'd:\'; %%% should check if there is permission for saving!!!
+    %env.wheretosavestuff = 'e:\'; %%% should check if there is permission for saving!!!
+    env.wheretosavestuff = 'g:\savesave\'; %%% should check if there is permission for saving!!!
     env.homepath = 'C:\\Users\\Frederico\\Documents\\GitHub\\classifier';
 else
     disp('oh-oh')
@@ -24,6 +26,8 @@ else
     logpath = strcat(env.homepath, env.SLASH ,'var',env.SLASH,'log.txt');
 end
 if ~exist(logpath,'file')
+    %if this fails there may be a broken path,,, usually happens when I
+    %change the computer I am using
     fid = fopen( logpath, 'wt' );
     fprintf( fid, 'New logfile created.');
     fclose(fid);

@@ -25,6 +25,8 @@ end
 if nargin>3
     allskeli2 = varargin{4};
 end
+loo = 0;
+partition = 0.8;
 
 if ~ischar(allskeli1) && (isempty(allskeli1)||isempty(allskeli2)||varargin{5})
     %%% maybe it would make sense here to just generate the complementary
@@ -53,51 +55,77 @@ switch dataset
         error('Unknown database.')
 end
 
+%%%% TODO: this message is wrong. FIX THIS!
+%%%%%%%%Messages part: provides feedback for the user
+dbgmsg('Generating random datasets for training and validation')
+if exist('allskeli1','var')
+%    dbgmsg('Variable allskeli1 is defined. Will skip randomization.')
+end
+%%%%%%%%%%%%
+
 if ischar(allskeli1)
-    if strcmp(allskeli1,'all')
-        allskeli1 = 1:datasize;
-    else
-        error(['Strange argument:' allskeli1])
+    switch allskeli1
+        case 'all'
+            allskeli1 = 1:datasize;
+            sampling_type = 'type2';
+        case 'loo'            
+            if strcmp(sampling_type,'type1')
+                %%%% this will be tested further down the line...
+                loo = 1;
+                clear allskeli1
+            else
+                allskeli1 = randperm(datasize,datasize -1);
+            end
+        otherwise
+            error(['Strange argument:' allskeli1])
     end
 end
 
 %%% checks to see if indices will be within array range
-if exist('allskeli1','var')
-    if any(allskeli1>datasize)
-        error('Index 1 is out of range for selected dataset.')
-    end
-end
-if exist('allskeli2','var')
-    if any(allskeli2>datasize)
-        error('Index 2 is out of range for selected dataset.')
-    end
-end
+%%% these only work for type2 - leave subjects out
+%%% TODO: implement better checking for type1 - leave actions out
+% if exist('allskeli1','var')
+%     if any(allskeli1>datasize)
+%         error('Index 1 is out of range for selected dataset.')
+%     end
+% end
+% if exist('allskeli2','var')
+%     if any(allskeli2>datasize)
+%         error('Index 2 is out of range for selected dataset.')
+%     end
+% end
 
 
-%%%%%%%%Messages part: provides feedback for the user
-dbgmsg('Generating random datasets for training and validation')
-if exist('allskeli1','var')
-    dbgmsg('Variable allskeli1 is defined. Will skip randomization.')
-end
-%%%%%%%%%%%%
+
 
 %%%% type 1 data sampling: known subjects, unknown individual activities from them:
 if strcmp(sampling_type,'type1')
     allskel = loadfun(1:datasize); %main data
+    allset = length(allskel);
+    %%%%
+    if loo
+        allskelimembers = allset - 1;
+    else
+        allskelimembers = fix(allset*partition);        
+    end
+    %%%%
     if ~exist('allskeli1','var')
-        allskeli1 = randperm(length(allskel),fix(length(allskel)*.8)); % generates the indexes for sampling the dataset
+        allskeli1 = randperm(allset,allskelimembers); % generates the indexes for sampling the dataset
     end
     allskel1 = allskel(allskeli1);
-    if ~exist('allskeli2','var')
+
+    %%% I will change this bit. In the past allskel2 was whatever you
+    %%% defined it to be, now it will be the complementary set to allskel1
+    %if ~exist('allskeli2','var')
         allskeli2 = setdiff(1:length(allskel),allskeli1); % use the remaining data as validation set
-    end
+    %end
     allskel2 = allskel(allskeli2);
 end
 
 %%%% type 2 data sampling: unknown subjects, unknown individual activities from them:
 if strcmp(sampling_type,'type2')
     if ~exist('allskeli1','var')
-        allskeli1 = randperm(datasize,fix(datasize*.8)); % generates the indexes for sampling the dataset
+        allskeli1 = randperm(datasize,fix(datasize*partition)); % generates the indexes for sampling the dataset
     end
     allskel1 = loadfun(allskeli1(1)); %initializes the training dataset
     for i=2:length(allskeli1)

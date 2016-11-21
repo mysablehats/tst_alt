@@ -13,24 +13,35 @@ drawconditions = [];
 markers = false;
 skel = varargin{1};
 doIdraw = true;
+numofthinskels = [];
+wheretoclip = [];
 
 if nargin>1&&islogical(varargin{2})
     doIdraw = varargin{2};
 elseif nargin >1
     for i= 2:nargin
-        switch varargin{i}
-            case 'f'
-                drawconditions = 'single_fat';
-            case 't'
-                drawconditions = 'single_thinskel';
-            case 'rt'
-                drawconditions = 'row_of_thinskels';
-            case 'ts'
-                drawconditions = 'tensor_skels';
-            case 'm'
-                markers = true;
-            otherwise
-                error('unknow parameter')
+        if ~isnumeric(varargin{i})&&ischar(varargin{i})
+            switch varargin{i}
+                case 'f'
+                    drawconditions = 'single_fat';
+                case 't'
+                    drawconditions = 'single_thinskel';
+                case 'rt'
+                    drawconditions = 'row_of_thinskels';
+                case 'ts'
+                    drawconditions = 'tensor_skels';
+                case 'm'
+                    markers = true;
+                case 'mt'
+                    drawconditions = 'strip_of_thinskels';
+                otherwise
+                    error('unknow parameter')
+            end
+        elseif isnumeric(varargin{i})
+            numofthinskels = varargin{i};
+        elseif isstruct(varargin{i})
+            skelldef = varargin{i};
+            wheretoclip = skelldef.hh/2; 
         end
     end
 end
@@ -52,15 +63,28 @@ if isempty(drawconditions)
     end
 end
 
+%%% break in parallelism here, maybe some bad programming, but this is
+%%% easier:
+if strcmp('strip_of_thinskels', drawconditions)
+        if isempty(numofthinskels)
+            error('You must define number of thin skeletons so that I know how to chop them up. I am not a mind reader.')
+        else
+            %%%creates row of thinskels
+            skel = reshape(skel, [],numofthinskels);
+            %%% sets drawconditions to 'row_of_thinskels'
+            drawconditions = 'row_of_thinskels';
+        end
+end
+
 switch drawconditions
     case 'row_of_thinskels'
-        [A,cellA, tdskel] = makeA_ver1(skel);
+        [A,cellA, tdskel] = makeA_ver1(skel,wheretoclip);
     case 'tensor_skels'
-        [A,cellA, tdskel] = makeA_ver3(skel);
+        [A,cellA, tdskel] = makeA_ver3(skel,wheretoclip);
     case 'single_thinskel'
-        [A,cellA, tdskel] = makeA_ver2(skel); 
+        [A,cellA, tdskel] = makeA_ver2(skel,wheretoclip); 
     case 'single_fat'
-        [A,cellA, tdskel] = makeA_ver2(makethinskel(skel));
+        [A,cellA, tdskel] = makeA_ver2(makethinskel(skel),wheretoclip);
 end
 
 if doIdraw
@@ -95,59 +119,63 @@ if doIdraw
 end
 
 end
-function [A,cellA, tdskel] = makeA_ver1(skel)
+function [A,cellA, tdskel] = makeA_ver1(skel,wheretoclip)
 A = [];
 cellA = [];
 for i = 1:(size(skel,2)-1)
     tdskel = cat(3, makefatskel(skel(:,i)),makefatskel(skel(:,i+1)));
-    [AA,cellAA] = constructA(remove_excess(tdskel));
+    [AA,cellAA] = constructA(remove_excess(tdskel, wheretoclip));
     cellA = cat(2, cellA, {cellAA}); % I perhaps should use the fast way, but I am lazy, so I may do this in the future
     A = cat(2, A, AA);
 end
 end
-function [A,cellA, tdskel] = makeA_ver2(skel)
+function [A,cellA, tdskel] = makeA_ver2(skel,wheretoclip)
 tdskel = cat(3,makefatskel(skel),makefatskel(skel));
-[A,cellA] = constructA(remove_excess(tdskel));
+[A,cellA] = constructA(remove_excess(tdskel, wheretoclip));
 %%% only markers if drawing a single skeleton
 %markers = true;
 end
-function [A,cellA, tdskel] = makeA_ver3(skel)
+function [A,cellA, tdskel] = makeA_ver3(skel,wheretoclip)
 A = [];
 cellA = [];
 for i =1:(size(skel,3)-1)
     %%% has to be separated into groups of 2
     tdskel = cat(3,skel(:,:,i),skel(:,:,i+1));
-    [AA,cellAA] = constructA(remove_excess(tdskel));
+    [AA,cellAA] = constructA(remove_excess(tdskel,wheretoclip));
     cellA = cat(2, cellA, {cellAA}); % I perhaps should use the fast way, but I am lazy, so I may do this in the future
     A = cat(2, A, AA);
 end
 end
-function tdskel = remove_excess(tdskel)
+function tdskel = remove_excess(tdskel,wheretoclip)
 %check size of tdskel
 % there are many different possibilities here, but the size might be enough
 % to tell what is happening
 %if > 50 then it has to have small paths. I will draw just the first
 %then...
 %if == 49 then it has velocities, I will also take those out
-
-if size(tdskel,1) > 25
-    %have to remove all the n*25 parts from the end
-    wheretoclip = mod(size(tdskel,1),25);
-    if wheretoclip==0
-        wheretoclip = 25;
-    end
+if ~isempty(wheretoclip)
     tdskel = tdskel(1:wheretoclip,:,:);
+else
+    if size(tdskel,1) > 25
+        %have to remove all the n*25 parts from the end
+        wheretoclip = mod(size(tdskel,1),25);
+        if wheretoclip==0
+            wheretoclip = 25;
+        end
+        tdskel = tdskel(1:wheretoclip,:,:);
+    end
+    
+    if size(tdskel,1) == 15, return, end %%% this will start to get very ambiguous for multiple sensor types
+    
+    %%%%this should receive skelldef
+    if size(tdskel,1) == 24
+        tdskel = cat(1,repmat([0 0 0 ],1,1,size(tdskel,3)),tdskel); % maybe it is a multidimensional array
+        %tdskel = [[0 0 0 ];tdskel]; % for the hips
+        %tdskel = [tdskel(1:20,:);[0 0 0 ];tdskel(21:end,:)]; % for the thorax
+    elseif size(tdskel,1) < 24
+        error('Don''t know what to do weird size :-( ')
+    end
 end
-
-%%%%this should receive skelldef
-if size(tdskel,1) == 24
-    tdskel = cat(1,repmat([0 0 0 ],1,1,size(tdskel,3)),tdskel); % maybe it is a multidimensional array
-    %tdskel = [[0 0 0 ];tdskel]; % for the hips
-    %tdskel = [tdskel(1:20,:);[0 0 0 ];tdskel(21:end,:)]; % for the thorax
-elseif size(tdskel,1) < 24
-    error('Don''t know what to do weird size :-( ')
-end
-
 
 end
 function [A, cellA] = constructA(tdskel)
@@ -167,7 +195,59 @@ cellA = {A(1,:),A(2,:), A(3,:)};
 end
 
 function a = stick_draw(tdskel)
+switch size(tdskel,1)
+    case 25
+        a = stick_draw25(tdskel);
+    case 15
+        a = another_stick_draw(tdskel);
+    case 20
+        a = other_stick_draw(tdskel);
+    otherwise
+        error('strange size of skeleton. no idea what I should do.')
+        
+end
+end
+function a = other_stick_draw(tdskel)
 
+a = draw_1_stick(tdskel, 1,2);
+a= [a draw_1_stick(tdskel, 2,3)];
+a= [a draw_1_stick(tdskel, 3,4)];
+a= [a draw_1_stick(tdskel, 3,5)];
+a= [a draw_1_stick(tdskel, 5,6)];
+a= [a draw_1_stick(tdskel, 6,7)];
+a= [a draw_1_stick(tdskel, 7,8)];
+a= [a draw_1_stick(tdskel, 3,9)];
+a= [a draw_1_stick(tdskel, 9,10)];
+a= [a draw_1_stick(tdskel, 10,11)];
+a= [a draw_1_stick(tdskel, 11,12)];
+a= [a draw_1_stick(tdskel, 1,17)];
+a= [a draw_1_stick(tdskel, 17,18)];
+a= [a draw_1_stick(tdskel, 18,19)];
+a= [a draw_1_stick(tdskel, 19,20)];
+a= [a draw_1_stick(tdskel, 1,13)];
+a= [a draw_1_stick(tdskel, 13,14)];
+a= [a draw_1_stick(tdskel, 14,15)];
+a= [a draw_1_stick(tdskel, 15,16)];
+
+end
+function a = another_stick_draw(tdskel)
+a = draw_1_stick(tdskel, 1,2);
+a= [a draw_1_stick(tdskel, 2,4)];
+a= [a draw_1_stick(tdskel, 4,5)];
+a= [a draw_1_stick(tdskel, 5,12)];
+a= [a draw_1_stick(tdskel, 2,6)];
+a= [a draw_1_stick(tdskel, 6,7)];
+a= [a draw_1_stick(tdskel, 7,13)];
+a= [a draw_1_stick(tdskel, 2,3)];
+a= [a draw_1_stick(tdskel, 3,10)];
+a= [a draw_1_stick(tdskel, 3,8)];
+a= [a draw_1_stick(tdskel, 10,11)];
+a= [a draw_1_stick(tdskel, 11,15)];
+a= [a draw_1_stick(tdskel, 10,8)];
+a= [a draw_1_stick(tdskel, 8,9)];
+a= [a draw_1_stick(tdskel, 9,14)];
+end
+function a = stick_draw25(tdskel)
 %
 %in the end the end the text command upstairs was what did the job and I
 %wrote down the connection of the skeleton points

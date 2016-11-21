@@ -5,21 +5,22 @@ function dbgmsg(varargin)
 %%%% maybe something else is wrong)...
 %global logfile persistent logfile
 global VERBOSE
-if isempty('VERBOSE')
+displayit = false;
+if isempty(VERBOSE)
     VERBOSE = false;
 end
 logfile = true; %%%this was not working so I removed it... %fopen('/home/fbklein/Documents/classifier/tst/var/log.txt','at'); % global is not working and I don't want to figure out why
 msg = varargin{1};
 if nargin >2
     msg = strcat(varargin{1:end-1});
-    VERBOSE = varargin{end};
+    displayit = varargin{end};
 end
 if nargin >1
-    VERBOSE = varargin{end};
+    displayit = varargin{end};
 else
    
 end
-if VERBOSE
+if VERBOSE||displayit
     doubleprint(logfile,'[%s %f] ',date,cputime);
     a = dbstack;
     doubleprint(logfile,a(end).name);
@@ -37,7 +38,7 @@ end
 function doubleprint(varargin)
 persistent logfile
 global logpath LOGIT
-if ~isempty('LOGIT')||LOGIT
+if ~isempty('LOGIT')&&LOGIT
     if isempty(logpath)
         aa_environment;
     end

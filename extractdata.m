@@ -15,9 +15,9 @@ for i = 1:length(varargin)
 end
 
 %%%%%%%%Messages part. Feedback for the user about the algorithm
-dbgmsg('Extracting data from skeleton structure',1)
+dbgmsg('Extracting data from skeleton structure')
 if WANTVELOCITY
-    dbgmsg('Constructing long vectors with velocity data as well',1)
+    dbgmsg('Constructing long vectors with velocity data as well')
 end
 %%%%%%%%
 %typetype= 'act_type';
@@ -58,8 +58,12 @@ end
 % It will also construct data for a clustering analysis, whatever the hell
 % that might mean in this sense
 vectordata = [];
-for i = 1:length(Data)
-    vectordata = cat(2,vectordata, [Data(:,1,i); Data(:,2,i); Data(:,3,i)]);
+if isempty(Data)
+    vectordata = [];
+else
+    for i = 1:size(Data,3)
+        vectordata = cat(2,vectordata, [Data(:,1,i); Data(:,2,i); Data(:,3,i)]);
+    end
 end
 %Y = Y';
 %Data, vectordata, Y, ends, lab]

@@ -1,17 +1,18 @@
-function [sst, sstv] = gas_method(sst, sstv, vot, arq_connect,j, dimdim)
+function [sstgasj, sstv] = gas_method(sst, sstv, vot, arq_connect,j, dimdim)
 %% Gas Method
 % This is a function to go over a gas of the classifier, populate it with the apropriate input and generate the best matching units for the next layer.
 %% Setting up some labels
-sst.gas(j).name = arq_connect.name;
-sst.gas(j).method = arq_connect.method;
-sst.gas(j).layertype = arq_connect.layertype;
+sstgasj = sst.gas(j);
+sstgasj.name = arq_connect.name;
+sstgasj.method = arq_connect.method;
+sstgasj.layertype = arq_connect.layertype;
 arq_connect.params.layertype = arq_connect.layertype;
 
 %% Choosing the right input for this layer
 % This calls the function set input that chooses what will be written on the .inputs variable. It also handles the sliding window concatenations and saves the .input_ends properties, so that this can be done recursevely.
 % After some consideration, I have decided that all of the long inputing
 % will be done inside setinput, because it it would be easier.
-dbgmsg('Working on gas: ''',sst.gas(j).name,''' (', num2str(j),') with method: ',sst.gas(j).method ,' for process:',num2str(labindex),1)
+dbgmsg('Working on gas: ''',sstgasj.name,''' (', num2str(j),') with method: ',sstgasj.method ,' for process:',num2str(labindex),0)
 
 [sstv.gas(j).inputs.input_clip, sstv.gas(j).inputs.input, sstv.gas(j).inputs.input_ends, sstv.gas(j).y, sstv.gas(j).inputs.oldwhotokill, sstv.gas(j).inputs.index, sstv.gas(j).inputs.awk ]  = setinput(arq_connect, sst, dimdim, sstv); %%%%%%
 
@@ -20,10 +21,10 @@ dbgmsg('Working on gas: ''',sst.gas(j).name,''' (', num2str(j),') with method: '
 % GWR function we wrote.
 if strcmp(vot, 'train')
     %DO GNG OR GWR
-    [sst.gas(j).nodes, sst.gas(j).edges, sst.gas(j).outparams] = gas_wrapper(sstv.gas(j).inputs.input_clip,arq_connect);
+    [sstgasj.nodes, sstgasj.edges, sstgasj.outparams] = gas_wrapper(sstv.gas(j).inputs.input_clip,arq_connect);
 end
 %%%% POS-MESSAGE
-dbgmsg('Finished working on gas: ''',sst.gas(j).name,''' (', num2str(j),') with method: ',sst.gas(j).method ,'.Num of nodes reached:',num2str(sst.gas(j).outparams.graph.nodesvect(end)),' for process:',num2str(labindex),1)
+dbgmsg('Finished working on gas: ''',sstgasj.name,''' (', num2str(j),') with method: ',sstgasj.method ,'.Num of nodes reached:',num2str(sstgasj.outparams.graph.nodesvect(end)),' for process:',num2str(labindex),0)
 
 %% Best-matching units
 % The last part is actually finding the best matching units for the gas.
@@ -36,25 +37,25 @@ dbgmsg('Finished working on gas: ''',sst.gas(j).name,''' (', num2str(j),') with 
 % Well, for the last gas it does make a difference, since these units will
 % not be used... Still I will  not fix it unless I have to.
 %PRE MESSAGE
-dbgmsg('Finding best matching units for gas: ''',sst.gas(j).name,''' (', num2str(j),') for process:',num2str(labindex),1)
-[~, sstv.gas(j).bestmatchbyindex] = genbestmmatrix(sst.gas(j).nodes, sstv.gas(j).inputs.input, arq_connect.layertype, arq_connect.q); %assuming the best matching node always comes from initial dataset!
+dbgmsg('Finding best matching units for gas: ''',sstgasj.name,''' (', num2str(j),') for process:',num2str(labindex),0)
+[~, sstv.gas(j).bestmatchbyindex] = genbestmmatrix(sstgasj.nodes, sstv.gas(j).inputs.input, arq_connect.layertype, arq_connect.q); %assuming the best matching node always comes from initial dataset!
 
 %% Post-conditioning function
 %This will be the noise removing function. I want this to be optional or allow other things to be done to the data and I
 %am still thinking about how to do it. Right now I will just create the
 %whattokill property and let setinput deal with it.
 if arq_connect.params.removepoints
-    dbgmsg('Flagging noisy input for removal from gas: ''',sst.gas(j).name,''' (', num2str(j),') with points with more than',num2str(arq_connect.params.gamma),' standard deviations, for process:',num2str(labindex),1)
-    sstv.gas(j).whotokill = removenoise(sst.gas(j).nodes, sstv.gas(j).inputs.input, sstv.gas(j).inputs.oldwhotokill, arq_connect.params.gamma, sstv.gas(j).inputs.index);
+    dbgmsg('Flagging noisy input for removal from gas: ''',sstgasj.name,''' (', num2str(j),') with points with more than',num2str(arq_connect.params.gamma),' standard deviations, for process:',num2str(labindex),0)
+    sstv.gas(j).whotokill = removenoise(sstgasj.nodes, sstv.gas(j).inputs.input, sstv.gas(j).inputs.oldwhotokill, arq_connect.params.gamma, sstv.gas(j).inputs.index);
 else
-    dbgmsg('Skipping removal of noisy input for gas:',sst.gas(j).name)
+    dbgmsg('Skipping removal of noisy input for gas:',sstgasj.name,0)
 end
 end
 function [ matmat, matmat_byindex] = genbestmmatrix(nodes, data, ~,~)
 %matmat = zeros(size(nodes,1),size(data,2));
 %matmat_byindex = zeros(1,size(data,2));
 [~,matmat_byindex] = pdist2(nodes',data','euclidean','Smallest',1);
-matmat = data(matmat_byindex);
+matmat = nodes(matmat_byindex);
 %
 % for i = 1:size(data,2)
 %        [ matmat(:,i), matmat_byindex(i)] = bestmatchingunit(data(:,i),gwr_nodes,whichisit,q);
