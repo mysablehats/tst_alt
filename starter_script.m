@@ -357,7 +357,7 @@ else
     %%load('chunk.mat');
     %    save('realclassifier.mat', 'outstruct', 'pallconn', 'simvar')
 
-    save('realclassifier', {'outstruct', 'pallconn', 'simvar'},env)
+    save(savefilesave2('realclassifier', env),'outstruct', 'pallconn', 'simvar')
     [~, something_to_classify] = realvideo(outstruct, baq(pallconn), simvar,0);   
     % realvideo(outstruct, baq(pallconn), simvar);
 

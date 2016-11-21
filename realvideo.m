@@ -111,7 +111,7 @@ trigger(vid);
 [IM,~,metaData]=getdata(vid,1,'uint8');
 
 [skelskel, skeldata, allskel3, chunk ] = readskeleton(metaData, outstruct, arc_conn, simvar, chunk);
-%makeimage(IM, skelskel)
+makeimage(IM, skelskel)
 catch ME
     ME.getReport
     return
