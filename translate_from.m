@@ -1,5 +1,10 @@
-function a15 = translate_from(a20)
-%writing by hand, so that is is faster... 
+function a15 = translate_from(a20_ori)
+%writing by hand, so that is is faster...  
+%must change y and z because the definitions are different
+%a20 = [a20_ori(:,1,:) a20_ori(:,3,:) -a20_ori(:,2,:)];
+a20 = [a20_ori(:,1,:) a20_ori(:,2,:) a20_ori(:,3,:)];
+
+%a20 = a20_ori;
 %btw, I made a mistake with the conversion
 c = 4.5691;
 a15(1,:,:) = c*a20(4,:,:); 

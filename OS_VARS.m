@@ -1,6 +1,6 @@
 function [SLASH, pathtodata] = OS_VARS()
 if ispc
-    SLASH = '\'; % windows 
+    SLASH = '\\'; % windows 
     pathtodata = 'D:\fall_detection_datasets\TST Fall detection database ver. 2\';
 elseif ismac
     pathtodata = '/remote/elements/fall_detection_datasets/TST Fall detection database ver. 2/';

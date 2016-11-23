@@ -46,7 +46,7 @@ end
 if isempty(varargin)
     simvar(end).featuresall = 1;
     simvar(end).realtimeclassifier = false;
-    simvar(end).generatenewdataset = true; %true;
+    simvar(end).generatenewdataset = false; %true;
     simvar(end).datasettype = 'CAD60'; % datasettypes are 'CAD60', 'tstv2' and 'stickman'
     simvar(end).sampling_type = 'type1';
     simvar(end).activity_type = 'act_type'; %'act_type' or 'act'
@@ -360,8 +360,8 @@ else
     %%chunk = makechunk(data);
     %%load('chunk.mat');
     %    save('realclassifier.mat', 'outstruct', 'pallconn', 'simvar')
-
-    save(savefilesave2('realclassifier', env),'outstruct', 'pallconn', 'simvar')
+    simvar.env = env;
+    save(savefilesave2('realclassifier', env),'outstruct', 'pallconn', 'simvar')    
     [~, something_to_classify] = realvideo(outstruct, baq(pallconn), simvar,0);   
     % realvideo(outstruct, baq(pallconn), simvar);
 

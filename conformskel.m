@@ -170,7 +170,7 @@ else
            end
             
             if isequal(func,@normalize)
-                if ~test
+                if 1%~test
                     %%% must go through whole dataset!
                     %%% if there is ever another function that requires this,
                     %%% then I should probably use a switch - if that works...

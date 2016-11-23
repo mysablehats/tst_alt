@@ -81,7 +81,7 @@ if exist('TimerData', 'var')
     %clear
 elseif ~realtimevideo
     sksks = [];
-    chunksize = 100;
+    chunksize = 500;
     chunk.chunk = zeros(20,3,chunksize);
     chunk.timers = zeros(1,chunksize, 'uint64');
     chunk.times = zeros(1,chunksize);
@@ -142,7 +142,7 @@ if any(metaData.IsSkeletonTracked)==1
                 chunk.timers(chunk.counter) = tic;
                 if chunk.counter > size(chunk.chunk,3)
                     allskel3 = generate_skel_online(chunk.chunk);
-                    save('..\onlineclass')
+                    save(savefilesave2('onlineclass', simvar.env), 'outstruct','allskel3','arc_conn', 'simvar','chunk')
                     labellabel = online_classifier(outstruct,allskel3, arc_conn, simvar);
                 end
            % catch ME

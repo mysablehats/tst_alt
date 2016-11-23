@@ -38,7 +38,7 @@ end
 function doubleprint(varargin)
 persistent logfile
 global logpath LOGIT
-if ~isempty('LOGIT')&&LOGIT
+if ~isempty(LOGIT)&&LOGIT
     if isempty(logpath)
         aa_environment;
     end
