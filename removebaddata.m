@@ -42,7 +42,7 @@ for i = 1:length(aaaa)
     eliminate = [B, eliminate];
 end
 icli = inp(:,setdiff(allitems, eliminate));
-disp(length(unique(eliminate)))
+dbgmsg('Removed ', num2str(length(unique(eliminate))),0)
 
 %     warning('I am removing some points!')
 %     
@@ -75,7 +75,7 @@ disp(length(unique(eliminate)))
 %                 jlower = max([1 fix((currrev{1}*.9)/(q*(p+1)*r))-1 ]); 
 %                 jhigher = min([jmax ceil((currrev{end})/(q*(p+1)*r))+1]);
 %             catch
-%                 dbgmsg('You better debug this function because using these long indexes will take forever!!!!!')
+%                 dbgmsg('You better debug this function because using these long indexes will take forever!!!!!',1)
 %                 jlower = 1;
 %                 jhigher = jmax;
 %             end                       
