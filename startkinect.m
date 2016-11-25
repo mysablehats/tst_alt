@@ -12,4 +12,4 @@ triggerconfig(vid, 'Manual');
 %set(vid,'TrackingMode','Skeleton')
 src = getselectedsource(vid);
 src.TrackingMode = 'Skeleton';
-src.CameraElevationAngle = 0
+src.CameraElevationAngle = 0;
