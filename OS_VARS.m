@@ -3,7 +3,7 @@ if ispc
     SLASH = '\\'; % windows 
     pathtodata = 'D:\fall_detection_datasets\TST Fall detection database ver. 2\';
 elseif ismac
-    pathtodata = '/remote/elements/fall_detection_datasets/TST Fall detection database ver. 2/';
+    pathtodata = '/Volumes/Elements/fall_detection_datasets/TST Fall detection database ver. 2/';
     SLASH = '/'; %
 elseif isunix
     %pathtodata = '/media/Elements/fall_detection_datasets/TST Fall detection database ver. 2/';

@@ -59,7 +59,7 @@ end
 %%%%%%%%Messages part: provides feedback for the user
 dbgmsg('Generating random datasets for training and validation')
 if exist('allskeli1','var')
-%    dbgmsg('Variable allskeli1 is defined. Will skip randomization.')
+    %    dbgmsg('Variable allskeli1 is defined. Will skip randomization.')
 end
 %%%%%%%%%%%%
 
@@ -68,13 +68,25 @@ if ischar(allskeli1)
         case 'all'
             allskeli1 = 1:datasize;
             sampling_type = 'type2';
-        case 'loo'            
+        case 'loo'
             if strcmp(sampling_type,'type1')
                 %%%% this will be tested further down the line...
                 loo = 1;
                 clear allskeli1
             else
                 allskeli1 = randperm(datasize,datasize -1);
+            end
+        case 'l6o'
+            if strcmp(sampling_type,'type1')
+                %%%% this will be tested further down the line...
+                loo = 6;
+                clear allskeli1
+            else
+                if datasize>6
+                    allskeli1 = randperm(datasize,datasize -6);
+                else
+                    error('Not enough subjects for selected method')
+                end
             end
         otherwise
             error(['Strange argument:' allskeli1])
@@ -103,21 +115,28 @@ if strcmp(sampling_type,'type1')
     allskel = loadfun(1:datasize); %main data
     allset = length(allskel);
     %%%%
-    if loo
-        allskelimembers = allset - 1;
-    else
-        allskelimembers = fix(allset*partition);        
+    switch loo
+        case 1
+            allskelimembers = allset - 1;
+        case 6
+            if allset>6
+                allskelimembers = allset - 6;
+            else
+                error('not enough data to do selected randomization')
+            end
+        otherwise
+            allskelimembers = fix(allset*partition);
     end
     %%%%
     if ~exist('allskeli1','var')
         allskeli1 = randperm(allset,allskelimembers); % generates the indexes for sampling the dataset
     end
     allskel1 = allskel(allskeli1);
-
+    
     %%% I will change this bit. In the past allskel2 was whatever you
     %%% defined it to be, now it will be the complementary set to allskel1
     %if ~exist('allskeli2','var')
-        allskeli2 = setdiff(1:length(allskel),allskeli1); % use the remaining data as validation set
+    allskeli2 = setdiff(1:length(allskel),allskeli1); % use the remaining data as validation set
     %end
     allskel2 = allskel(allskeli2);
 end

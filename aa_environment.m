@@ -2,12 +2,12 @@ function env = aa_environment()
 [env.SLASH, env.pathtodata] = OS_VARS();
 global logpath
 if ismac
-    env.wheretosavestuff = '/Volumes/Seagate';
-    env.homepath = '~/matlabprogs/';
+    env.wheretosavestuff = '/Volumes/Elements/savesave';
+    env.homepath = '~/matlabprogs/classifier';
     %disp('reached ismac')
 elseif isunix
     env.wheretosavestuff = '/media/fbklein/Elements/fall_detection_datasets/var';
-    env.homepath = '/home/fbklein/Documents/classifier/';
+    env.homepath = '/home/fbklein/Documents/classifier';
     %disp('reached isunix')
 elseif ispc
     list_dir = {'d', 'e', 'f', 'g', 'h'};
