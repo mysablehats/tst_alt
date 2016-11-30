@@ -125,7 +125,7 @@ allskel3 = [];
 
 %try
 if any(metaData.IsSkeletonTracked)==1
-    disp(strcat('Tracked: ',num2str(sum(metaData.IsSkeletonTracked)),' skeletons.'))
+    dbgmsg(strcat('Tracked: ',num2str(sum(metaData.IsSkeletonTracked)),' skeletons.'),0)
 %    dbgmsg(metaData.IsSkeletonTracked,0)
     for i = 1:length(metaData.IsSkeletonTracked)
         if metaData.IsSkeletonTracked(i)==1
@@ -142,7 +142,7 @@ if any(metaData.IsSkeletonTracked)==1
                 chunk.timers(chunk.counter) = tic;
                 if chunk.counter > size(chunk.chunk,3)
                     allskel3 = generate_skel_online(chunk.chunk);
-                    save(savefilesave2('onlineclass', simvar.env), 'outstruct','allskel3','arc_conn', 'simvar','chunk')
+                    save(savefilesave2('onlineclass', simvar.env),'allskel3','arc_conn', 'simvar','chunk')
                     labellabel = online_classifier(outstruct,allskel3, arc_conn, simvar);
                 end
            % catch ME

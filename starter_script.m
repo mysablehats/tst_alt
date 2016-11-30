@@ -158,10 +158,13 @@ for architectures = simvar(end).ARCH_VECT
                     end
                     if simvar(end).generatenewdataset||datasetmissing
                         [allskel1, allskel2, simvar(end).TrainSubjectIndexes, simvar(end).ValSubjectIndexes] = generate_skel_data(simvar(end).datasettype, simvar(end).sampling_type, simvar(end).TrainSubjectIndexes, simvar(end).ValSubjectIndexes, simvar(end).randSubjEachIteration);
-                        [allskel1, allskel2] = conformactions(allskel1,allskel2, simvar(end).prefilter); %%% should be split in 2
+                        
+                        [allskel1] = conformactions(allskel1, simvar(end).prefilter);                     
                         [data.train, simvar(end).labels_names] = extractdata(allskel1, simvar(end).activity_type, simvar(end).labels_names,simvar(end).extract{:});
                         [data.train, params.skelldef] = conformskel(data.train, simvar(end).preconditions{:});
+                        
                         %does same for validation data
+                        [allskel2] = conformactions(allskel2, simvar(end).prefilter);
                         [data.val, simvar(end).labels_names] = extractdata(allskel2, simvar(end).activity_type, simvar(end).labels_names,simvar(end).extract{:});
                         [data.val, ~                ] = conformskel(data.val,   simvar(end).preconditions{:}); 
 
@@ -361,8 +364,11 @@ else
     %%load('chunk.mat');
     %    save('realclassifier.mat', 'outstruct', 'pallconn', 'simvar')
     simvar.env = env;
-    save(savefilesave2('realclassifier', env),'outstruct', 'pallconn', 'simvar')    
-    [~, something_to_classify] = realvideo(outstruct, baq(pallconn), simvar,0);   
+    realclass.outstruct = outstruct;
+    realclass.allconn = baq(pallconn);
+    realclass.simvar = simvar;
+    save(savefilesave2('realclassifier', env),'realclass')    
+    [~, something_to_classify] = realvideo(realclass.outstruct, realclass.allconn, realclass.simvar,0);   
     % realvideo(outstruct, baq(pallconn), simvar);
 
     %%online_classifier(chunkchunk, outstruct, baq(pallconn), simvar);

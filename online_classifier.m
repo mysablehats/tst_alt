@@ -1,12 +1,12 @@
 function data = online_classifier(data, allskel, arq_connect, simvar)
 global VERBOSE LOGIT
-VERBOSE = 1; % true;
+VERBOSE = 0; % true;
 LOGIT = false;
 %a = struct();
 
 %runs conformactions
 
-[allskel,~] = conformactions(allskel, [], simvar.prefilter); %%% should be split in 2
+[allskel] = conformactions(allskel, simvar.prefilter); %%% should be split in 2
 
 %extractdata
 [data.test, ~] = extractdata(allskel, simvar.activity_type, simvar.labels_names,simvar.extract{:}); %%% I dont know if I need this, or if it makes sense to use this function

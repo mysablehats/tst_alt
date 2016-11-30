@@ -11,7 +11,7 @@ gases = [];
 global VERBOSE LOGIT
 VERBOSE = true;
 LOGIT = true;
-dbgmsg('ENTERING MAIN LOOP')
+dbgmsg('ENTERING MAIN LOOP',0)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%% making metrics structure

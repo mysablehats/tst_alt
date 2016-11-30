@@ -1,4 +1,4 @@
-function [allskel1, allskel2] = conformactions(allskel1,allskel2, whichfilter)
+function [allskel] = conformactions(allskel, whichfilter)
 %%%disp('hello')
 %whichfilter = 'median';
 
@@ -18,18 +18,10 @@ switch whichfilter
         error('Unknown filter.')
 end
 
-for i = 1:size(allskel1,2)
-    for j = 1:size(allskel1(i).vel,1)
-        for k = 1:size(allskel1(i).vel,2)
-            allskel1(i).vel(j,k,:) = filterfun(allskel1(i).vel(j,k,:));
-        end
-    end
-end
-
-for i = 1:size(allskel2,2)
-    for j = 1:size(allskel2(i).vel,1)
-        for k = 1:size(allskel2(i).vel,2)
-            allskel2(i).vel(j,k,:) = filterfun(allskel2(i).vel(j,k,:));
+for i = 1:size(allskel,2)
+    for j = 1:size(allskel(i).vel,1)
+        for k = 1:size(allskel(i).vel,2)
+            allskel(i).vel(j,k,:) = filterfun(allskel(i).vel(j,k,:));
         end
     end
 end
