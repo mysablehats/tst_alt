@@ -25,13 +25,7 @@ by = A(2,col);
 X = reshape([ax;bx;NaN*ones(size(ax))],size(ax,2)*3,1)'; %based on the idea to use NaNs to break the lines from GnGplot which is faster than what I was doing...
 Y = reshape([ay;by;NaN*ones(size(ax))],size(ax,2)*3,1)'; %this shit is verticalllllllllll, thennnnn it gets horizonta----------------
 
-if size(A,1)>=3&&size(A,1)<75&&size(A,1)~=72
-    az = A(3,row);
-    bz = A(3,col);
-    Z = reshape([az;bz;NaN*ones(size(ax))],size(ax,2)*3,1)';
-    theactualplot(A, error_vect, epoch_vect, nodes, X, Y, Z)
-
-elseif size(A,1) == 75||size(A,1) == 72
+if size(A,1) == 75||size(A,1) == 72|| size(A,1) == 45
     if size(A,1) == 72
         tdskel = zeros(24,3,size(A,2));
         for k = 1:size(A,2)
@@ -43,16 +37,18 @@ elseif size(A,1) == 75||size(A,1) == 72
         end
         tdskel = cat(1,zeros(1,3,size(A,2)), tdskel);     
     else
-        tdskel = zeros(25,3,size(A,2));
+        %%%this is a reshape...
+        aaaa= size(A,1)/3;
+        tdskel = zeros(aaaa,3,size(A,2));
         for k = 1:size(A,2)
             for i=1:3
-                for j=1:25
-                    tdskel(j,i,k) = A(j+25*(i-1),k);
+                for j=1:aaaa
+                    tdskel(j,i,k) = A(j+aaaa*(i-1),k);
                 end
             end
         end
     end
-    if all(size(tdskel) ~= [25 3 size(A,2)])
+    if 0%all(size(tdskel) ~= [25 3 size(A,2)])
         error('wrong skeleton building procedure!')
     end
     %q = size(squeeze(tdskel(1,:,row)),2);
@@ -76,7 +72,11 @@ elseif size(A,1) == 75||size(A,1) == 72
     % make A into a sequence of 3d points
     A = threedeeA(A);
     theactualplot(A', error_vect, epoch_vect, nodes, T(1,:),T(2,:),T(3,:))
-       
+elseif size(A,1)>=3&&size(A,1)<75&&size(A,1)~=72
+    az = A(3,row);
+    bz = A(3,col);
+    Z = reshape([az;bz;NaN*ones(size(ax))],size(ax,2)*3,1)';
+    theactualplot(A, error_vect, epoch_vect, nodes, X, Y, Z)   
 else
     theactualplot(A, error_vect, epoch_vect, nodes, X, Y)
  
