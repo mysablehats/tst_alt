@@ -22,9 +22,10 @@ dbgmsg('Working on gas: ''',sstgasj.name,''' (', num2str(j),') with method: ',ss
 if strcmp(vot, 'train')
     %DO GNG OR GWR
     [sstgasj.nodes, sstgasj.edges, sstgasj.outparams] = gas_wrapper(sstv.gas(j).inputs.input_clip,arq_connect);
+    %%%% POS-MESSAGE
+    dbgmsg('Finished working on gas: ''',sstgasj.name,''' (', num2str(j),') with method: ',sstgasj.method ,'.Num of nodes reached:',num2str(sstgasj.outparams.graph.nodesvect(end)),' for process:',num2str(labindex),0)
+    
 end
-%%%% POS-MESSAGE
-dbgmsg('Finished working on gas: ''',sstgasj.name,''' (', num2str(j),') with method: ',sstgasj.method ,'.Num of nodes reached:',num2str(sstgasj.outparams.graph.nodesvect(end)),' for process:',num2str(labindex),0)
 
 %% Best-matching units
 % The last part is actually finding the best matching units for the gas.

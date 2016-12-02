@@ -26,67 +26,53 @@ dbgmsg('========================================================================
 
 env = aa_environment; % load environment variables
 
-%creates a structure with the results of different trials
-env.cstfilename=strcat(env.wheretosavestuff,env.SLASH,'cst.mat');
-if exist(env.cstfilename,'file')
-    loadst = load(env.cstfilename,'simvar');
-    try
-        simvar = loadst.simvar;
-    catch
-        simvar = struct();
-    end
-end
-if ~exist('simvar','var')
-    simvar = struct();
-else
-    simvar(end+1).nodes = [];%cst(1);
-end
+simvar = struct();
 
 %% Choose dataset
 if isempty(varargin)
-    simvar(end).featuresall = 1;
-    simvar(end).realtimeclassifier = false;
-    simvar(end).generatenewdataset = false; %true;
-    simvar(end).datasettype = 'CAD60'; % datasettypes are 'CAD60', 'tstv2' and 'stickman'
-    simvar(end).sampling_type = 'type1';
-    simvar(end).activity_type = 'act_type'; %'act_type' or 'act'
-    simvar(end).prefilter = 'none'; % 'filter', 'none', 'median?'
-    simvar(end).labels_names = []; % necessary so that same actions keep their order number
-    simvar(end).TrainSubjectIndexes = 'loo';%[9,10,11,4,8,5,3,6]; %% comment these out to have random new samples
-    simvar(end).ValSubjectIndexes = [];%[1,2,7];%% comment these out to have random new samples
-    simvar(end).randSubjEachIteration = true;
-    simvar(end).extract = {'rand', 'wantvelocity'};
-    simvar(end).preconditions = {'nohips', 'normal', 'norotatehips','mirrorx'};% {'nohips', 'norotatehips','mirrorx'}; %
-    simvar(end).trialdataname = strcat('skel',simvar(end).datasettype,'_',simvar(end).sampling_type,simvar(end).activity_type,'_',simvar(end).prefilter, [simvar(end).extract{:}],[simvar(end).preconditions{:}]);
-    simvar(end).trialdatafile = strcat(env.wheretosavestuff,env.SLASH,simvar(end).trialdataname,'.mat');
+    simvar.featuresall = 1;
+    simvar.realtimeclassifier = false;
+    simvar.generatenewdataset = 1; %true;
+    simvar.datasettype = 'CAD60'; % datasettypes are 'CAD60', 'tstv2' and 'stickman'
+    simvar.sampling_type = 'type1';
+    simvar.activity_type = 'act_type'; %'act_type' or 'act'
+    simvar.prefilter = 'none'; % 'filter', 'none', 'median?'
+    simvar.labels_names = []; % necessary so that same actions keep their order number
+    simvar.TrainSubjectIndexes = 'loo';%[9,10,11,4,8,5,3,6]; %% comment these out to have random new samples
+    simvar.ValSubjectIndexes = [];%[1,2,7];%% comment these out to have random new samples
+    simvar.randSubjEachIteration = true;
+    simvar.extract = {'rand', 'wantvelocity'};
+    simvar.preconditions = {};%{'nohips', 'normal', 'norotatehips','mirrorx'};% {'nohips', 'norotatehips','mirrorx'}; %
+    simvar.trialdataname = strcat('skel',simvar.datasettype,'_',simvar.sampling_type,simvar.activity_type,'_',simvar.prefilter, [simvar.extract{:}],[simvar.preconditions{:}]);
+    simvar.trialdatafile = strcat(env.wheretosavestuff,env.SLASH,simvar.trialdataname,'.mat');
 else
-    simvar(end).featuresall = 3;%size(varargin{1},2);
-    simvar(end).generatenewdataset = false;
-    simvar(end).datasettype = 'Ext!';
-    simvar(end).sampling_type = '';
-    simvar(end).activity_type = ''; %'act_type' or 'act'
-    simvar(end).prefilter = 'none'; % 'filter', 'none', 'median?'
-    simvar(end).labels_names = []; % necessary so that same actions keep their order number
-    simvar(end).TrainSubjectIndexes = [];%[9,10,11,4,8,5,3,6]; %% comment these out to have random new samples
-    simvar(end).ValSubjectIndexes = [];%[1,2,7];%% comment these out to have random new samples
-    simvar(end).randSubjEachIteration = true;
-    simvar(end).extract = {''};
-    simvar(end).preconditions = {''};
-    simvar(end).trialdataname = strcat('other',simvar(end).datasettype,'_',simvar(end).sampling_type,simvar(end).activity_type,'_',simvar(end).prefilter, [simvar(end).extract{:}],[simvar(end).preconditions{:}]);
-    simvar(end).trialdatafile = strcat(env.wheretosavestuff,env.SLASH,simvar(end).trialdataname,'.mat');
+    simvar.featuresall = 3;%size(varargin{1},2);
+    simvar.generatenewdataset = false;
+    simvar.datasettype = 'Ext!';
+    simvar.sampling_type = '';
+    simvar.activity_type = ''; %'act_type' or 'act'
+    simvar.prefilter = 'none'; % 'filter', 'none', 'median?'
+    simvar.labels_names = []; % necessary so that same actions keep their order number
+    simvar.TrainSubjectIndexes = [];%[9,10,11,4,8,5,3,6]; %% comment these out to have random new samples
+    simvar.ValSubjectIndexes = [];%[1,2,7];%% comment these out to have random new samples
+    simvar.randSubjEachIteration = true;
+    simvar.extract = {''};
+    simvar.preconditions = {''};
+    simvar.trialdataname = strcat('other',simvar.datasettype,'_',simvar.sampling_type,simvar.activity_type,'_',simvar.prefilter, [simvar.extract{:}],[simvar.preconditions{:}]);
+    simvar.trialdatafile = strcat(env.wheretosavestuff,env.SLASH,simvar.trialdataname,'.mat');
 end
 
 %% Setting up runtime variables
 
 % set other additional simulation variables
-simvar(end).TEST = TEST; %change this in the beginning of the program
-simvar(end).PARA = 0;
-simvar(end).P = 1;
-simvar(end).NODES_VECT = 1000;
-simvar(end).MAX_EPOCHS_VECT = [1];
-simvar(end).ARCH_VECT = [1];
-simvar(end).MAX_NUM_TRIALS = 1;
-simvar(end).MAX_RUNNING_TIME = 1;%3600*10; %%% in seconds, will stop after this
+simvar.TEST = TEST; %change this in the beginning of the program
+simvar.PARA = 0;
+simvar.P = 1;
+simvar.NODES_VECT = 500;
+simvar.MAX_EPOCHS_VECT = [1];
+simvar.ARCH_VECT = [1];
+simvar.MAX_NUM_TRIALS = 1;
+simvar.MAX_RUNNING_TIME = 1;%3600*10; %%% in seconds, will stop after this
 
 % set parameters for gas:
 
@@ -102,7 +88,7 @@ params.savegas.path = env.wheretosavestuff;
 params.savegas.parallelgases = true;
 params.savegas.parallelgasescount = 0;
 params.savegas.accurate_track_epochs = true;
-params.savegas.P = simvar(end).P;
+params.savegas.P = simvar.P;
 params.startingpoint = [1 2];
 params.amax = 50; %greatest allowed age
 params.nodes = []; %maximum number of nodes/neurons in the gas
@@ -128,62 +114,62 @@ params.d                           = .99;   % Error reduction factor.
 
 
 %% Begin loop
-for architectures = simvar(end).ARCH_VECT
-    for NODES = simvar(end).NODES_VECT
-        for MAX_EPOCHS = simvar(end).MAX_EPOCHS_VECT
-            for featuress = 1:simvar(end).featuresall
-                if NODES ==100000 && (simvar(end).MAX_EPOCHS==1||simvar(end).MAX_EPOCHS==1)
+for architectures = simvar.ARCH_VECT
+    for NODES = simvar.NODES_VECT
+        for MAX_EPOCHS = simvar.MAX_EPOCHS_VECT
+            for featuress = 1:simvar.featuresall
+                if NODES ==100000 && (simvar.MAX_EPOCHS==1||simvar.MAX_EPOCHS==1)
                     dbgmsg('Did this already',1)
                     break
                 end
-                simvar(end).arch = architectures;
-                simvar(end).NODES =  NODES;
-                simvar(end).MAX_EPOCHS = MAX_EPOCHS;
+                simvar.arch = architectures;
+                simvar.NODES =  NODES;
+                simvar.MAX_EPOCHS = MAX_EPOCHS;
                 
-                params.MAX_EPOCHS = simvar(end).MAX_EPOCHS;
-                params.nodes = simvar(end).NODES; %maximum number of nodes/neurons in the gas
+                params.MAX_EPOCHS = simvar.MAX_EPOCHS;
+                params.nodes = simvar.NODES; %maximum number of nodes/neurons in the gas
                 
                  %% Classifier structure definitions
                 
-                simvar(end).allconn = allconnset(simvar(end).arch, params);
+                simvar.allconn = allconnset(simvar.arch, params);
                 
                 
                 %% Loading data
-                data =  makess(length(baq(simvar(end).allconn))); % this breaks exectution core changes... 
+                data =  makess(length(baq(simvar.allconn))); % this breaks exectution core changes... 
                 if isempty(varargin)
                     datasetmissing = false;
-                    if ~exist(simvar(end).trialdatafile, 'file')&&~simvar(end).generatenewdataset
+                    if ~exist(simvar.trialdatafile, 'file')&&~simvar.generatenewdataset
                         dbgmsg('There is no data on the specified location. Will generate new dataset.',1)
                         datasetmissing = true;
                     end
-                    if simvar(end).generatenewdataset||datasetmissing
-                        [allskel1, allskel2, simvar(end).TrainSubjectIndexes, simvar(end).ValSubjectIndexes] = generate_skel_data(simvar(end).datasettype, simvar(end).sampling_type, simvar(end).TrainSubjectIndexes, simvar(end).ValSubjectIndexes, simvar(end).randSubjEachIteration);
-                        
-                        [allskel1] = conformactions(allskel1, simvar(end).prefilter);                     
-                        [data.train, simvar(end).labels_names] = extractdata(allskel1, simvar(end).activity_type, simvar(end).labels_names,simvar(end).extract{:});
-                        [data.train, params.skelldef] = conformskel(data.train, simvar(end).preconditions{:});
-                        
-                        %does same for validation data
-                        [allskel2] = conformactions(allskel2, simvar(end).prefilter);
-                        [data.val, simvar(end).labels_names] = extractdata(allskel2, simvar(end).activity_type, simvar(end).labels_names,simvar(end).extract{:});
-                        [data.val, ~                ] = conformskel(data.val,   simvar(end).preconditions{:}); 
+                    if simvar.generatenewdataset||datasetmissing
+                        [allskel1, allskel2, simvar.TrainSubjectIndexes, simvar.ValSubjectIndexes] = generate_skel_data(simvar.datasettype, simvar.sampling_type, simvar.TrainSubjectIndexes, simvar.ValSubjectIndexes, simvar.randSubjEachIteration);
+                        [data.train,simvar.labels_names, params.skelldef] = all3(allskel1, simvar);
+                        %                         [allskel1] = conformactions(allskel1, simvar.prefilter);
+                        %                         [data.train, simvar.labels_names] = extractdata(allskel1, simvar.activity_type, simvar.labels_names,simvar.extract{:});
+                        %                         [data.train, params.skelldef] = conformskel(data.train, simvar.preconditions{:});
+                        %                         %does same for validation data
+                        [data.val,simvar.labels_names, ~] = all3(allskel2, simvar);
+                        %                         [allskel2] = conformactions(allskel2, simvar.prefilter);
+                        %                         [data.val, simvar.labels_names] = extractdata(allskel2, simvar.activity_type, simvar.labels_names,simvar.extract{:});
+                        %                         [data.val, ~                ] = conformskel(data.val,   simvar.preconditions{:});
 
-                        simvar(end).trialdatafile = savefilesave(simvar(end).trialdataname, {data, simvar,params},env);
-                        %save(simvar(end).trialdataname,'data', 'simvar','params');
+                        simvar.trialdatafile = savefilesave(simvar.trialdataname, {data, simvar,params},env);
+                        %save(simvar.trialdataname,'data', 'simvar','params');
                         dbgmsg('Training and Validation data saved.')
                         clear datasetmissing
                     else
-                        loadedtrial = loadfileload(simvar(end).trialdataname,env);
+                        loadedtrial = loadfileload(simvar.trialdataname,env);
                         data = loadedtrial.data;
                         params.skelldef = loadedtrial.params.skelldef;
-                        simvar(end).generatenewdataset = false;
+                        simvar.generatenewdataset = false;
                     end
-                    simvar(end).datainputvectorsize = size(data.train.data,1);
+                    simvar.datainputvectorsize = size(data.train.data,1);
                 else
                     data = varargin{1};
                     data = data(featuress);                    
-                    simvar(end).datainputvectorsize = size(data.inputs,2);
-                    params.skelldef = struct('length', simvar(end).datainputvectorsize, 'notskeleton', true, 'awk', struct('pos', [],'vel',[]), 'pos', simvar(end).datainputvectorsize, 'vel', []);
+                    simvar.datainputvectorsize = size(data.inputs,2);
+                    params.skelldef = struct('length', simvar.datainputvectorsize, 'notskeleton', true, 'awk', struct('pos', [],'vel',[]), 'pos', simvar.datainputvectorsize, 'vel', []);
                     data.train.data = data.inputs'; % not empty so that the algorithm doesnt complain
                     data.train.y = data.labelsM;
                     data.train.ends = ones(1,size(data.inputs,1));
@@ -193,7 +179,7 @@ for architectures = simvar(end).ARCH_VECT
                 end
                 %% Classifier structure definitions
                 
-                simvar(end).allconn = allconnset(simvar(end).arch, params);
+                simvar.allconn = allconnset(simvar.arch, params);
             
   %%%%%does this look like good programming?           
                 
@@ -202,8 +188,8 @@ for architectures = simvar(end).ARCH_VECT
                 % Maybe you want to do that; in case you don't, then we just
                 % use a for to put the same parameters for each.
                 a = struct([]);
-                for i = 1:simvar(end).P
-                    simvar(end).paramsZ(i) = params;
+                for i = 1:simvar.P
+                    simvar.paramsZ(i) = params;
                     a(i).a = struct([]);
                 end
                 
@@ -212,13 +198,13 @@ for architectures = simvar(end).ARCH_VECT
                 
                 if ~TEST % there are so many different ways I want to test it, that this definition is pretty much pointless.
                     starttime = tic;
-                    while toc(starttime)< simvar(end).MAX_RUNNING_TIME
-                        if length(b)> simvar(end).MAX_NUM_TRIALS
+                    while toc(starttime)< simvar.MAX_RUNNING_TIME
+                        if length(b)> simvar.MAX_NUM_TRIALS
                             break
                         end
-                        if simvar(end).PARA
-                            spmd(simvar(end).P)
-                                a(labindex).a = executioncore_in_starterscript(simvar(end),labindex, data,env);
+                        if simvar.PARA
+                            spmd(simvar.P)
+                                a(labindex).a = executioncore_in_starterscript(simvar,labindex, data,env);
                             end
                             %b = cat(2,b,a.a);
                             for i=1:length(a)
@@ -227,46 +213,58 @@ for architectures = simvar(end).ARCH_VECT
                                 b = [c.a b];
                             end
                             clear a c
-                            a(1:simvar(end).P) = struct();
+                            a(1:simvar.P) = struct();
                         else
-                            for i = 1:simvar(end).P
-                                a(i).a = executioncore_in_starterscript(simvar(end),i, data,env);
+                            for i = 1:simvar.P
+                                a(i).a = executioncore_in_starterscript(simvar,i, data,env);
                             end
                             b = cat(2,b,a.a);
                             clear a
-                            a(1:simvar(end).P) = struct();
+                            a(1:simvar.P) = struct();
                         end
                     end
                 else
-                    b = executioncore_in_starterscript(simvar(end),1, data,env);
+                    b = executioncore_in_starterscript(simvar,1, data,env);
                 end
                 
-                simvar(end).metrics = gen_cst(b); %%% it takes the important stuff from b;;; hopefully
+                simvar.metrics = gen_cst(b); %%% it takes the important stuff from b;;; hopefully
                 if isempty(varargin)
-                    save(strcat(env.wheretosavestuff,env.SLASH,'cst.mat'),'simvar')
                     
-                    savevar = strcat('b',num2str(simvar(end).NODES),'_', num2str(params.MAX_EPOCHS),'epochs',num2str(size(b,2)), simvar(end).sampling_type, simvar(end).datasettype, simvar(end).activity_type);
-                    eval(strcat(savevar,'=simvar(end);'))
-                    simvar(end).savesave = savefilesave(savevar, simvar(end),env);
-                    %             simvar(end).savesave = strcat(env.wheretosavestuff,env.SLASH,savevar,'.mat');
+                    %%%
+                    %creates a structure with the results of different trials
+%                     env.cstfilename=strcat(env.wheretosavestuff,env.SLASH,'cst.mat');
+%                     if exist(env.cstfilename,'file')
+%                         loadst = load(env.cstfilename,'simvar');
+%                         if ~isfield(loadst, 'simvar')
+%                             warning('could not find simvar on specified file.')
+%                         end
+%                     end
+%                     if ~exist('simvar','var')
+%                         simvar = struct();
+%                     else
+%                         simvar(end+1).nodes = [];%cst(1);
+%                     end
+%                     
+%                     save(strcat(env.wheretosavestuff,env.SLASH,'cst.mat'),'simvar')
+%                     
+                    savevar = strcat('b',num2str(simvar.NODES),'_', num2str(params.MAX_EPOCHS),'epochs',num2str(size(b,2)), simvar.sampling_type, simvar.datasettype, simvar.activity_type);
+                    eval(strcat(savevar,'=simvar;'))
+                    simvar.savesave = savefilesave(savevar, simvar,env);
+                    %             simvar.savesave = strcat(env.wheretosavestuff,env.SLASH,savevar,'.mat');
                     %             ver = 1;
                     %
-                    %             while exist(simvar(end).savesave,'file')
-                    %                 simvar(end).savesave = strcat(env.wheretosavestuff,env.SLASH,savevar,'[ver(',num2str(ver),')].mat');
+                    %             while exist(simvar.savesave,'file')
+                    %                 simvar.savesave = strcat(env.wheretosavestuff,env.SLASH,savevar,'[ver(',num2str(ver),')].mat');
                     %                 ver = ver+1;
                     %             end
-                    %             save(simvar(end).savesave,savevar)
-                    dbgmsg('Trial saved in: ',simvar(end).savesave,1)
+                    %             save(simvar.savesave,savevar)
+                    dbgmsg('Trial saved in: ',simvar.savesave,1)
                 end
-                simvar(end+1) = simvar(end);
             end
             clear b
-            clock
         end
     end
 end
-simvar(end) = [];
-disp('hello')
 end
 function allconn = allconnset(n, params)
 allconn_set = {...
@@ -358,7 +356,7 @@ if TEST
     end
     
 else
-    [outstruct, a.mt, ~] = starter_sc(data, pallconn);
+    [outstruct, a.mt, ~] = starter_sc(data, baq(pallconn));
     %%disp('hello')
     %%chunk = makechunk(data);
     %%load('chunk.mat');
@@ -368,7 +366,7 @@ else
     realclass.allconn = baq(pallconn);
     realclass.simvar = simvar;
     save(savefilesave2('realclassifier', env),'realclass')    
-    [~, something_to_classify] = realvideo(realclass.outstruct, realclass.allconn, realclass.simvar,0);   
+    %[~, something_to_classify] = realvideo(realclass.outstruct, realclass.allconn, realclass.simvar,0);   
     % realvideo(outstruct, baq(pallconn), simvar);
 
     %%online_classifier(chunkchunk, outstruct, baq(pallconn), simvar);

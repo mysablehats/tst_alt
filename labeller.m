@@ -1,47 +1,10 @@
-function [train_class, val_class, nodesl] = labeller(nodes, train_bestmatchbyindex, val_bestmatchbyindex, train_input, y_train)
+function vot_class = labeller(nodesl, vot_bestmatchbyindex)
 
-nodesl = labeling(nodes,train_input,y_train);
+votcsize = size(vot_bestmatchbyindex,2);
+ycsize = size(nodesl,1);
+vot_class = zeros(ycsize,votcsize);
 
-tcsize = size(train_bestmatchbyindex,2);
-vcsize = size(val_bestmatchbyindex,2);
-ycsize = size(y_train,1);
-
-train_class = zeros(ycsize,tcsize);
-val_class = zeros(ycsize,vcsize);
-
-for i =1:tcsize
-    train_class(:,i) = nodesl(:,train_bestmatchbyindex(i));
-end
-for i =1:vcsize
-    val_class(:,i) = nodesl(:,val_bestmatchbyindex(i));
-end
-end
-function labels = labeling(nodes, data, y)
-% the labeling function for the GWR and GNG
-% cf parisi, adopt the label of the nearest node
-
-%so first we need to know the label of each node
-% we do exactly as parisi, with the labeling after the learning phase
-% this he calls the training phase (but everything is the training phase)
-% go through the nodeset and see in the data_set what is more similar
-%%%%%MESSAGES
-dbgmsg('Applying labels to the prototypical nodes.',1)
-%%%%%
-try
-    [~,ni] = pdist2(data',nodes', 'euclidean', 'Smallest',1);
-    labels = y(:,ni);
-catch
-    [labels, ~ ]= labelling(nodes, data, y);
-end
-
-
-end
-function [labels, ni1 ]= labelling(nodes, data, y)
-maxmax = size(nodes,2);
-labels = zeros(1,maxmax);
-
-for i = 1:maxmax
-    [~, ~, ni1 , ~ , ~] = findnearest(nodes(:,i), data); % s1 is the index of the nearest point in data
-    labels(i) = y(ni1);
+for i =1:votcsize
+    vot_class(:,i) = nodesl(:,vot_bestmatchbyindex(i));
 end
 end

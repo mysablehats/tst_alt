@@ -13,7 +13,7 @@ if classfdata.realclass.simvar.paramsZ.PLOTIT
     figure
     skeldraw(onlineclassdata.allskel3.skel(:,:,1:3),'ts');
     figure
-    skeldraw(makefatskel(onlineclassdata.outstruct.train.data(1:45,1:3)),'ts');
+    skeldraw(makefatskel(classfdata.realclass.outstruct.train.data(1:45,1:3)),'ts');
 end
 labellabel = online_classifier(classfdata.realclass.outstruct,onlineclassdata.allskel3, classfdata.realclass.allconn, classfdata.realclass.simvar);
 %toc
