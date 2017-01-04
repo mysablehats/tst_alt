@@ -1,4 +1,4 @@
-function [extinput_clipped, extinput, inputends,y, removeremove, indexes, awko] = setinput(arq_connect, savestruc,data_size, svst_t_v) %needs to receive the correct data size so that generateidx may work well
+function [extinput_clipped, extinput, inputends,y, removeremove, indexes, awko] = setinput(arq_connect, savestrucgas,data_size, svst_t_v) %needs to receive the correct data size so that generateidx may work well
 %%%%%% this is the place to get long inputs actually.
 %arqconnect has only the current layer, so it is flat
 %inputends need to be the same for everything to work out fine
@@ -22,13 +22,13 @@ inputends = [];
 [posidx, velidx] = generateidx(data_size, arq_connect.params.skelldef);
 for j = 1:length(arq_connect.sourcelayer)
     foundmysource = false;
-    for i = 1:length(savestruc.gas)
-        if strcmp(arq_connect.sourcelayer{j}, savestruc.gas(i).name)
+    for i = 1:length(savestrucgas)
+        if strcmp(arq_connect.sourcelayer{j}, savestrucgas(i).name)
             if isempty( svst_t_v.gas(i).bestmatchbyindex)
                 error('wrong computation order. bestmatch field not yet defined.')
             end
             oldinputends = inputends;
-            [inputinput{j},inputends,y, indexes] = longinput( savestruc.gas(i).nodes(:,svst_t_v.gas(i).bestmatchbyindex), arq_connect.q, svst_t_v.gas(i).inputs.input_ends, svst_t_v.gas(i).y,svst_t_v.gas(i).inputs.index);
+            [inputinput{j},inputends,y, indexes] = longinput( savestrucgas(i).nodes(:,svst_t_v.gas(i).bestmatchbyindex), arq_connect.q, svst_t_v.gas(i).inputs.input_ends, svst_t_v.gas(i).y,svst_t_v.gas(i).inputs.index);
             
             %%%check for misalignments of inputends
             if ~isempty(oldinputends)

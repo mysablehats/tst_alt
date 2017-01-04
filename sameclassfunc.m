@@ -1,4 +1,4 @@
-function [ss, ssvot] = sameclassfunc(ss, ssvot, vot, whatIlabel, arq_connect)
+function [ssgas, ssvot] = sameclassfunc(ssgas, ssvot, vot, whatIlabel, arq_connect)
 %% Gas-chain Classifier
 % This part executes the chain of interlinked gases. Each iteration is one
 % gas, and currently it works as follows:
@@ -14,9 +14,9 @@ dbgmsg('###Using multilayer GWR and GNG ###',0)
 
 for j = 1:length(arq_connect)
     if size(ssvot.data,1)>0&&strcmp(vot,'train')
-        [ss.gas(j), ssvot] = gas_method(ss, ssvot,vot, arq_connect(j),j, size(ssvot.data,1)); % I had to separate it to debug it.
+        [ssgas(j), ssvot] = gas_method(ssgas, ssvot,vot, arq_connect(j),j, size(ssvot.data,1)); % I had to separate it to debug it.
     else
-        [~, ssvot ]= gas_method(ss, ssvot, vot, arq_connect(j),j, size(ssvot.data,1)); %%%hmmm, this will not work
+        [~, ssvot ]= gas_method(ssgas, ssvot, vot, arq_connect(j),j, size(ssvot.data,1)); %%%hmmm, this will not work
     end
 end
 
@@ -28,8 +28,8 @@ if strcmp(vot,'train')
         figure
         for j = 1:length(arq_connect)
             subplot(1,length(arq_connect),j)
-            hist(ss.gas(j).outparams.graph.errorvect)
-            title((ss.gas(j).name))
+            hist(ssgas(j).outparams.graph.errorvect)
+            title((ssgas(j).name))
         end
     end
 end
@@ -45,12 +45,12 @@ end
 % action-lets.
 % Specific part on what I want to label
 for j = whatIlabel
-    dbgmsg('Applying labels for gas: ''',ss.gas(j).name,''' (', num2str(j),') for process:',num2str(labindex),0)
+    dbgmsg('Applying labels for gas: ''',ssgas(j).name,''' (', num2str(j),') for process:',num2str(labindex),0)
     if strcmp(vot,'train')
-        ss.gas(j).nodesl = labeling(ss.gas(j).nodes,ssvot.gas(j).inputs.input,ssvot.gas(j).y);
+        ssgas(j).nodesl = labeling(ssgas(j).nodes,ssvot.gas(j).inputs.input,ssvot.gas(j).y);
     end
     if isfield(ssvot,'gas')&&j<=length(ssvot.gas)
-        ssvot.gas(j).class = labeller(ss.gas(j).nodesl, ssvot.gas(j).bestmatchbyindex);
+        ssvot.gas(j).class = labeller(ssgas(j).nodesl, ssvot.gas(j).bestmatchbyindex);
     end
     
 end

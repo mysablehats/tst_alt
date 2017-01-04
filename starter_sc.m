@@ -22,8 +22,8 @@ whatIlabel = 1:length(ss.gas); %change this series for only the last value to la
 
 %%% end of gas structures region
 
-[ss, ss.train] = sameclassfunc(ss, ss.train, 'train', whatIlabel, arq_connect);
-[ss, ss.val] = sameclassfunc(ss, ss.val, 'val', whatIlabel, arq_connect);
+[ss.gas, ss.train] = sameclassfunc(ss.gas, ss.train, 'train', whatIlabel, arq_connect);
+[ss.gas, ss.val] = sameclassfunc(ss.gas, ss.val, 'val', whatIlabel, arq_connect);
 for j = 1:length(arq_connect)
         metrics(j).outparams = ss.gas(j).outparams;
 end
@@ -50,4 +50,5 @@ if isfield(ss.gas(end).fig, 'val')&&~isempty(ss.gas(end).fig.val)
     figure
     plotconfusion(ss.gas(end).fig.val{:})
 end
+gases = ss.gas;
 end

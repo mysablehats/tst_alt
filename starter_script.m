@@ -363,13 +363,15 @@ if TEST
     end
     
 else
-    [outstruct, a.mt, ~] = starter_sc(data, baq(pallconn));
+    %[outstruct, a.mt, ~] = starter_sc(data, baq(pallconn));
+    [~, a.mt, gases] = starter_sc(data, baq(pallconn));
     %%disp('hello')
     %%chunk = makechunk(data);
     %%load('chunk.mat');
     %    save('realclassifier.mat', 'outstruct', 'pallconn', 'simvar')
     simvar.env = env;
-    realclass.outstruct = outstruct;
+    %realclass.outstruct = outstruct;
+    realclass.gases = gases;
     realclass.allconn = baq(pallconn);
     realclass.simvar = simvar;
     save(savefilesave2('realclassifier', env),'realclass')    
