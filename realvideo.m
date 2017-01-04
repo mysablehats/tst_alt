@@ -1,4 +1,4 @@
-function [sksks, allskel3] = realvideo(outstruct, arc_conn, simvar, realtimevideo)
+function [sksks, allskel3] = realvideo(ax, outstruct, arc_conn, simvar, realtimevideo)
 global VERBOSE
 VERBOSE = false;
 % persistent vid
@@ -9,11 +9,18 @@ VERBOSE = false;
 NumberFrameDisplayPerSecond=10;
 
 % Open figure
-hFigure=figure();
+%hFigure=figure();
+
+sksks = [];
+chunksize = 500;
+chunk.chunk = zeros(20,3,chunksize);
+chunk.timers = zeros(1,chunksize, 'uint64');
+chunk.times = zeros(1,chunksize);
+chunk.counter = 0;
 
 % Set-up webcam video input
 try
-   [vid, src] = startkinect();
+    [vid, src] = startkinect();
     
 catch  ME
     ME.getReport
@@ -21,25 +28,25 @@ catch  ME
     try
         vid = imaqfind; %in case i am already aquiring
     catch  ME2
-                 ME2.getReport
+        ME2.getReport
         try
             % For macs.
             % this is dumb
             vid = videoinput('macvideo', 1);
         catch  ME3
-                 ME3.getReport
+            ME3.getReport
             errordlg('No webcam available');
         end
     end
 end
-
+%
 if realtimevideo
     % set up timer object
-    TimerData=timer('TimerFcn', {@FrameRateDisplay,vid,outstruct, arc_conn, simvar},'Period',1/NumberFrameDisplayPerSecond,'ExecutionMode','fixedRate','BusyMode','drop');
+    TimerData=timer('TimerFcn', {@FrameRateDisplay,ax, vid,outstruct, arc_conn, simvar,chunk},'Period',1/NumberFrameDisplayPerSecond,'ExecutionMode','fixedRate','BusyMode','drop');
 end
 % Start video and timer object
-try %maybe I have already started vid... or failed to stop it? 
-start(vid);
+try %maybe I have already started vid... or failed to stop it?
+    start(vid);
 catch
     stop(vid);
     start(vid);
@@ -48,7 +55,7 @@ end
 %try
 if realtimevideo
     start(TimerData)
-    uiwait(hFigure);
+    %     uiwait(hFigure);
 end
 %catch
 %     stop(TimerData);
@@ -63,55 +70,51 @@ end
 
 
 % Clean up everything
-if exist('TimerData', 'var')
-    
-    %     %pause(1)
-    %     while(TimerData.Running)
-    %     end
-    stop(TimerData);
-    %waitfor(TimerData);
-    delete(TimerData);
-    stop(vid);
-    pause(1)
-    delete(vid);
-    % clear persistent variables
-    clear vid
-    clear TimerData
-    clear functions;
-    %clear
-elseif ~realtimevideo
-    sksks = [];
-    chunksize = 500;
-    chunk.chunk = zeros(20,3,chunksize);
-    chunk.timers = zeros(1,chunksize, 'uint64');
-    chunk.times = zeros(1,chunksize);
-    chunk.counter = 0;
-    while(isempty(sksks))
-        [sksks, allskel3, chunk] = FrameRateDisplay([], [],vid,outstruct, arc_conn, simvar, chunk);
+if 0
+    if exist('TimerData', 'var')
+        
+        %     %pause(1)
+        %     while(TimerData.Running)
+        %     end
+        stop(TimerData);
+        %waitfor(TimerData);
+        delete(TimerData);
+        stop(vid);
+        pause(1)
+        delete(vid);
+        % clear persistent variables
+        clear vid
+        clear TimerData
+        clear functions;
+        %clear
+    elseif ~realtimevideo
+        
+        while(isempty(sksks))
+            [sksks, allskel3, chunk] = FrameRateDisplay([], [],ax, vid,outstruct, arc_conn, simvar, chunk);
+        end
+        stop(vid);
+        pause(1)
+        delete(vid);
+        % clear persistent variables
+        clear functions;
+        %clear
     end
-    stop(vid);
-    pause(1)
-    delete(vid);
-    % clear persistent variables
-    clear functions;
-    %clear
 end
-
 end
 
 % This function is called by the timer to display one frame of the figure
 
 
-function [skeldata, allskel3, chunk] = FrameRateDisplay(obj, event,vid,outstruct, arc_conn, simvar, chunk)
+function [skeldata, allskel3, chunk] = FrameRateDisplay(obj, event,ax, vid,outstruct, arc_conn, simvar, chunk)
 persistent IM; % im not sure this is necessary
 skeldata = [];
 allskel3 = [];
 try
-trigger(vid);
-[IM,~,metaData]=getdata(vid,1,'uint8');
-
-[skelskel, skeldata, allskel3, chunk ] = readskeleton(metaData, outstruct, arc_conn, simvar, chunk);
-makeimage(IM, skelskel)
+    trigger(vid);
+    [IM,~,metaData]=getdata(vid,1,'uint8');
+    
+    [skelskel, skeldata, allskel3, chunk ] = readskeleton(metaData, outstruct, arc_conn, simvar, chunk);
+    makeimage(ax, IM, skelskel)
 catch ME
     ME.getReport
     return
@@ -126,33 +129,33 @@ allskel3 = [];
 %try
 if any(metaData.IsSkeletonTracked)==1
     dbgmsg(strcat('Tracked: ',num2str(sum(metaData.IsSkeletonTracked)),' skeletons.'),0)
-%    dbgmsg(metaData.IsSkeletonTracked,0)
+    %    dbgmsg(metaData.IsSkeletonTracked,0)
     for i = 1:length(metaData.IsSkeletonTracked)
         if metaData.IsSkeletonTracked(i)==1
             %disp(metaData.JointWorldCoordinates(:,:,i))
             %try
-                dbgmsg('Reached inside of loop',0)
-                skelskel =  coordshift(skeldraw_(metaData.JointWorldCoordinates(:,:,i),false));
-                chunk.chunk(:,:,2:end) = chunk.chunk(:,:,1:end-1);
-                chunk.chunk(:,:,1) = metaData.JointWorldCoordinates(:,:,i);                
-                chunk.counter = chunk.counter +1;
-                if chunk.counter>1
-                    chunk.times(chunk.counter-1) = toc(chunk.timers(chunk.counter-1)); 
-                end
-                chunk.timers(chunk.counter) = tic;
-                if chunk.counter > size(chunk.chunk,3)
-                    allskel3 = generate_skel_online(chunk.chunk);
-                    save(savefilesave2('onlineclass', simvar.env),'allskel3','arc_conn', 'simvar','chunk')
-                    labellabel = online_classifier(outstruct,allskel3, arc_conn, simvar);
-                end
-           % catch ME
-%                 ME.getReport
-%                 size(chunk(:,:,1))
-%                 size(metaData.JointWorldCoordinates(:,:,i))
-%                 find(chunk==0)
-%                 disp(metaData.JointWorldCoordinates(:,:,i))
-%                 error('Something fishy happened') %why error catch if you are goint to break the program??
-%             %end
+            dbgmsg('Reached inside of loop',0)
+            skelskel =  coordshift(skeldraw_(metaData.JointWorldCoordinates(:,:,i),false));
+            chunk.chunk(:,:,2:end) = chunk.chunk(:,:,1:end-1);
+            chunk.chunk(:,:,1) = metaData.JointWorldCoordinates(:,:,i);
+            chunk.counter = chunk.counter +1;
+            if chunk.counter>1
+                chunk.times(chunk.counter-1) = toc(chunk.timers(chunk.counter-1));
+            end
+            chunk.timers(chunk.counter) = tic;
+            if chunk.counter > size(chunk.chunk,3)
+                allskel3 = generate_skel_online(chunk.chunk);
+                save(savefilesave2('onlineclass', simvar.env),'allskel3','arc_conn', 'simvar','chunk')
+                labellabel = online_classifier(outstruct,allskel3, arc_conn, simvar);
+            end
+            % catch ME
+            %                 ME.getReport
+            %                 size(chunk(:,:,1))
+            %                 size(metaData.JointWorldCoordinates(:,:,i))
+            %                 find(chunk==0)
+            %                 disp(metaData.JointWorldCoordinates(:,:,i))
+            %                 error('Something fishy happened') %why error catch if you are goint to break the program??
+            %             %end
         end
     end
 end
@@ -160,11 +163,11 @@ end
 %    disp('Can''t draw! :/')
 %end
 end
-function makeimage(IM, skelskel)
+function makeimage(myaxes, IM, skelskel)
 persistent handlesRaw;
 persistent handlesPlot;
 persistent handlesmyskel;
-persistent myaxes;
+%persistent myaxes;
 if isempty(handlesRaw)
     % if first execution, we create the figure objects
     %subplot(2,1,1);
