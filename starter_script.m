@@ -68,7 +68,7 @@ end
 simvar.TEST = TEST; %change this in the beginning of the program
 simvar.PARA = 0;
 simvar.P = 1;
-simvar.NODES_VECT = 500;
+simvar.NODES_VECT = 50;
 simvar.MAX_EPOCHS_VECT = [1];
 simvar.ARCH_VECT = [11];
 simvar.MAX_NUM_TRIALS = 1;

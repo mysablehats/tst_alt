@@ -7,6 +7,8 @@ LOGIT = false;
 %runs conformactions
 
 [data.test,~,~] = all3(allskel, simvar);
+%data.test = datatest; %matlab was complaining about this...
+
 % 
 % [allskel] = conformactions(allskel, simvar.prefilter); %%% should be split in 2
 % 
@@ -16,7 +18,7 @@ LOGIT = false;
 % [data.test, ~ ] = conformskel(data.test, simvar.preconditions{:}, 'test', simvar.paramsZ.skelldef);
 %loop from l.65 of starter_sc -> make it into a function???
 
-whatIlabel = 1:length(data.gas);
+whatIlabel = 1:length(data);
 [data, data.test] = sameclassfunc(data, data.test, 'test', whatIlabel, arq_connect);
 
 % for j = 1:length(arq_connect)

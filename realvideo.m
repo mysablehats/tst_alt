@@ -1,22 +1,23 @@
 function [sksks, allskel3] = realvideo(ax, outstruct, arc_conn, simvar, realtimevideo)
 global VERBOSE
-VERBOSE = false;
+VERBOSE = true;
 % persistent vid
 % if exist('vid','var')
 %     closepreview(vid)
 % end
 % Define frame rate
-NumberFrameDisplayPerSecond=10;
+NumberFrameDisplayPerSecond=30;
 
 % Open figure
 %hFigure=figure();
 
 sksks = [];
-chunksize = 500;
+chunksize = 50;
 chunk.chunk = zeros(20,3,chunksize);
 chunk.timers = zeros(1,chunksize, 'uint64');
 chunk.times = zeros(1,chunksize);
 chunk.counter = 0;
+
 
 % Set-up webcam video input
 try
@@ -42,7 +43,7 @@ end
 %
 if realtimevideo
     % set up timer object
-    TimerData=timer('TimerFcn', {@FrameRateDisplay,ax, vid,outstruct, arc_conn, simvar,chunk},'Period',1/NumberFrameDisplayPerSecond,'ExecutionMode','fixedRate','BusyMode','drop');
+    TimerData=timer('TimerFcn', {@FrameRateDisplay,ax, vid,outstruct, arc_conn, simvar, chunk},'Period',1/NumberFrameDisplayPerSecond,'ExecutionMode','fixedRate','BusyMode','drop');
 end
 % Start video and timer object
 try %maybe I have already started vid... or failed to stop it?
@@ -70,7 +71,7 @@ end
 
 
 % Clean up everything
-if 0
+if 1
     if exist('TimerData', 'var')
         
         %     %pause(1)
@@ -107,13 +108,20 @@ end
 
 function [skeldata, allskel3, chunk] = FrameRateDisplay(obj, event,ax, vid,outstruct, arc_conn, simvar, chunk)
 persistent IM; % im not sure this is necessary
+persistent persistent_chunk
 skeldata = [];
 allskel3 = [];
+
+if isempty(persistent_chunk)
+    persistent_chunk = chunk;
+end
+
 try
     trigger(vid);
     [IM,~,metaData]=getdata(vid,1,'uint8');
     
-    [skelskel, skeldata, allskel3, chunk ] = readskeleton(metaData, outstruct, arc_conn, simvar, chunk);
+    [skelskel, skeldata, allskel3, chunk ] = readskeleton(metaData, outstruct, arc_conn, simvar, persistent_chunk);
+    persistent_chunk = chunk;
     makeimage(ax, IM, skelskel)
 catch ME
     ME.getReport
@@ -139,6 +147,7 @@ if any(metaData.IsSkeletonTracked)==1
             chunk.chunk(:,:,2:end) = chunk.chunk(:,:,1:end-1);
             chunk.chunk(:,:,1) = metaData.JointWorldCoordinates(:,:,i);
             chunk.counter = chunk.counter +1;
+            dbgmsg('chunk.counter', num2str(chunk.counter),0)
             if chunk.counter>1
                 chunk.times(chunk.counter-1) = toc(chunk.timers(chunk.counter-1));
             end
