@@ -1,4 +1,4 @@
-function plot_act(data, other, skelldef)
+function plot_act(data, other, skelldef, numskels)
 
 %%% so many functions!!!! who can keep track of all of them without
 %%% documentation?
@@ -11,7 +11,7 @@ function plot_act(data, other, skelldef)
 %%%
 %%% This function should be called from the scope of online_classifier and
 %%% it needs this kind of data.
-numskels = 2;
+%numskels = 3;
 %maybe plot with subplot and show also bestmatching
 subplot(3,1,1)
 skeldraw(other(:,1:numskels),'rt', skelldef); %%to plot this i need the skelldef :-(

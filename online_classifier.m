@@ -31,12 +31,13 @@ whatIlabel = 1:length(data);
 %     %for i gases... like above
 %     [data.test.gas(i).class, ~] = find(data.gas(i).nodesl(:, data.test.gas(i).bestmatchbyindex));
 % end
-
+%numskells = size(data.test.gas(i).class,2);
+numskells = 4;
 if isfield(simvar,'labels_names')&&~isempty(simvar.labels_names)
     %size(simvar.labels_names)
     for i = 1:length(arq_connect)
         aoutout = [];
-        claas = sum(data.test.gas(i).class.*(1:size(data.test.gas(i).class,1)).');
+        claas = sum(data.test.gas(i).class(:,1:numskells).*(1:size(data.test.gas(i).class,1)).');
         [a, b ]= hist(claas, unique(claas));
         [~, ii] = sort(a,'descend');
         for j = ii
@@ -54,7 +55,7 @@ end
 %disp('')
 if simvar.paramsZ.PLOTIT
     figure
-    plot_act(data, data.test.data, simvar.paramsZ.skelldef) %% data.test!!!!
+    plot_act(data, data.test.data, simvar.paramsZ.skelldef, numskells) %% data.test!!!!
 end
 
 end
