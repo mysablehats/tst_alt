@@ -70,7 +70,7 @@ if strcmp('strip_of_thinskels', drawconditions)
             error('You must define number of thin skeletons so that I know how to chop them up. I am not a mind reader.')
         else
             %%%creates row of thinskels
-            skel = reshape(skel, [],numofthinskels*size(skel,2)); %%%ideally it would create 2 separate entinties united with NaNs, right?
+            skel = reshape(skel, [],numofthinskels);
             %%% sets drawconditions to 'row_of_thinskels'
             drawconditions = 'row_of_thinskels';
         end
