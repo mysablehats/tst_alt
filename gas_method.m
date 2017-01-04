@@ -1,8 +1,8 @@
-function [sstgasj, sstv] = gas_method(sstgas, sstv, vot, arq_connect,j, dimdim)
+function [sstgasj, sstv] = gas_method(sst, sstv, vot, arq_connect,j, dimdim)
 %% Gas Method
 % This is a function to go over a gas of the classifier, populate it with the apropriate input and generate the best matching units for the next layer.
 %% Setting up some labels
-sstgasj = sstgas(j);
+sstgasj = sst.gas(j);
 sstgasj.name = arq_connect.name;
 sstgasj.method = arq_connect.method;
 sstgasj.layertype = arq_connect.layertype;
@@ -14,7 +14,7 @@ arq_connect.params.layertype = arq_connect.layertype;
 % will be done inside setinput, because it it would be easier.
 dbgmsg('Working on gas: ''',sstgasj.name,''' (', num2str(j),') with method: ',sstgasj.method ,' for process:',num2str(labindex),0)
 
-[sstv.gas(j).inputs.input_clip, sstv.gas(j).inputs.input, sstv.gas(j).inputs.input_ends, sstv.gas(j).y, sstv.gas(j).inputs.oldwhotokill, sstv.gas(j).inputs.index, sstv.gas(j).inputs.awk ]  = setinput(arq_connect, sstgas, dimdim, sstv); %%%%%%
+[sstv.gas(j).inputs.input_clip, sstv.gas(j).inputs.input, sstv.gas(j).inputs.input_ends, sstv.gas(j).y, sstv.gas(j).inputs.oldwhotokill, sstv.gas(j).inputs.index, sstv.gas(j).inputs.awk ]  = setinput(arq_connect, sst, dimdim, sstv); %%%%%%
 
 %%
 % After setting the input, we can actually run the gas, either a GNG or the
@@ -55,30 +55,7 @@ function [ matmat, matmat_byindex] = genbestmmatrix(nodes, data, ~,~)
 %matmat = zeros(size(nodes,1),size(data,2));
 %matmat_byindex = zeros(1,size(data,2));
 [~,matmat_byindex] = pdist2(nodes',data','euclidean','Smallest',1);
-matmat = [];
-%matmat = nodes(:,matmat_byindex); whatever, right?
-
-%% for debug purposes, this part graphs what I think things look like:
-if 0
-    upperbound = 4;%size(data,2)
-    figure
-    for i = 1: upperbound
-        subplot(upperbound,1,i)
-        skeldraw(data(1:45,i));
-    end
-    figure
-    for i = 1: upperbound
-        subplot(upperbound,1,i)
-        skeldraw(nodes(1:45,i));
-    end
-    figure
-    for i = 1: upperbound
-        subplot(upperbound,1,i)
-        skeldraw(nodes(1:45,matmat_byindex(i)));
-    end
-    pause(1)
-end
-
+matmat = nodes(matmat_byindex);
 %
 % for i = 1:size(data,2)
 %        [ matmat(:,i), matmat_byindex(i)] = bestmatchingunit(data(:,i),gwr_nodes,whichisit,q);
